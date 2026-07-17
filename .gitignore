@@ -1,0 +1,15 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyTorch models
+saved_models/
+
+# Logs and Plots
+logs/
+plots/
+
+# OS-specific
+.DS_Store
+Thumbs.db
