@@ -49,13 +49,13 @@ def train_dqn(config: Config) -> None:
     # ── Reproducibility ───────────────────────────────────
     set_seeds(config.SEED)
 
-    # ── Pre-generate one target state per episode ─────────
-    print(f"[DQN] Generating {config.DQN_EPISODES} training target states …")
+    # -- Pre-generate one target state per episode ---------
+    print(f"[DQN] Generating {config.DQN_EPISODES} training target states ...")
     target_states = generate_target_states(
         config.NUM_QUBITS, config.DQN_EPISODES, seed=config.SEED
     )
 
-    # ── Environment & agent ───────────────────────────────
+    # -- Environment & agent -------------------------------
     env = QuantumCircuitEnv(config)
     obs_size    = env.observation_space.shape[0]
     action_size = env.action_space.n
@@ -63,12 +63,12 @@ def train_dqn(config: Config) -> None:
     print(f"[DQN] obs_size={obs_size}  action_size={action_size}")
     agent = DQNAgent(obs_size, action_size, config)
 
-    # ── Training log buffers ──────────────────────────────
+    # -- Training log buffers ------------------------------
     episode_rewards    = []
     episode_fidelities = []
     episode_steps      = []
 
-    print(f"[DQN] Starting training for {config.DQN_EPISODES} episodes …\n")
+    print(f"[DQN] Starting training for {config.DQN_EPISODES} episodes ...\n")
 
     for episode in range(config.DQN_EPISODES):
         # Each episode uses a fresh, unique target state

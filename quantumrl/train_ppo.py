@@ -50,13 +50,13 @@ def train_ppo(config: Config) -> None:
     # ── Reproducibility ───────────────────────────────────
     set_seeds(config.SEED)
 
-    # ── Pre-generate target states ────────────────────────
-    print(f"[PPO] Generating {config.PPO_EPISODES} training target states …")
+    # -- Pre-generate target states ------------------------
+    print(f"[PPO] Generating {config.PPO_EPISODES} training target states ...")
     target_states = generate_target_states(
         config.NUM_QUBITS, config.PPO_EPISODES, seed=config.SEED
     )
 
-    # ── Environment & agent ───────────────────────────────
+    # -- Environment & agent -------------------------------
     env = QuantumCircuitEnv(config)
     obs_size    = env.observation_space.shape[0]
     action_size = env.action_space.n
@@ -64,12 +64,12 @@ def train_ppo(config: Config) -> None:
     print(f"[PPO] obs_size={obs_size}  action_size={action_size}")
     agent = PPOAgent(obs_size, action_size, config)
 
-    # ── Training log buffers ──────────────────────────────
+    # -- Training log buffers ------------------------------
     episode_rewards    = []
     episode_fidelities = []
     episode_steps      = []
 
-    # ── Rollout buffer (cleared after each update) ────────
+    # -- Rollout buffer (cleared after each update) --------
     rollout_states     = []
     rollout_actions    = []
     rollout_log_probs  = []
@@ -77,7 +77,7 @@ def train_ppo(config: Config) -> None:
     rollout_dones      = []
     rollout_values     = []
 
-    # ── Episode tracking state ────────────────────────────
+    # -- Episode tracking state ----------------------------
     episode         = 0
     episode_reward  = 0.0
     last_fidelity   = 0.0
@@ -88,7 +88,7 @@ def train_ppo(config: Config) -> None:
 
     rollout_step_count = 0    # steps collected in the current rollout window
 
-    print(f"[PPO] Starting training for {config.PPO_EPISODES} episodes …\n")
+    print(f"[PPO] Starting training for {config.PPO_EPISODES} episodes ...\n")
 
     while episode < config.PPO_EPISODES:
         # ── Collect one rollout of PPO_ROLLOUT_STEPS steps ─

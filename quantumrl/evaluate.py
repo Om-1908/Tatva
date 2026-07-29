@@ -208,7 +208,7 @@ def run_evaluation(config: Config) -> None:
     """
     # ── Held-out test states (different seed from training) ──
     test_seed = config.SEED + 999
-    print(f"[evaluate] Generating {config.NUM_TEST_STATES} test states (seed={test_seed}) …")
+    print(f"[evaluate] Generating {config.NUM_TEST_STATES} test states (seed={test_seed}) ...")
     test_states = generate_target_states(
         config.NUM_QUBITS, config.NUM_TEST_STATES, seed=test_seed
     )
@@ -237,35 +237,35 @@ def run_evaluation(config: Config) -> None:
     ppo_agent = PPOAgent(obs_size, action_size, config)
     ppo_agent.load(config.PPO_MODEL_PATH)
 
-    # ── Evaluate DQN ──────────────────────────────────────
-    print("\n[evaluate] Evaluating DQN …")
+    # -- Evaluate DQN --------------------------------------
+    print("\n[evaluate] Evaluating DQN ...")
     dqn_results = evaluate_dqn(dqn_agent, env, test_states, config)
 
     dqn_mean_fid   = float(np.mean(dqn_results['fidelities']))
     dqn_success    = float(np.mean(dqn_results['successes'])) * 100.0
     dqn_mean_gates = float(np.mean(dqn_results['gate_counts']))
 
-    print(f"\n  ┌─ DQN Results ({'%d' % config.NUM_TEST_STATES} test states) ─────────────┐")
-    print(f"  │  Mean Fidelity  : {dqn_mean_fid:.4f}                    │")
-    print(f"  │  Success Rate   : {dqn_success:.1f}%                        │")
-    print(f"  │  Mean Gate Count: {dqn_mean_gates:.2f}                     │")
-    print(f"  └────────────────────────────────────────────┘")
+    print(f"\n  +-- DQN Results ({'%d' % config.NUM_TEST_STATES} test states) ----------------+")
+    print(f"  |  Mean Fidelity  : {dqn_mean_fid:.4f}                    |")
+    print(f"  |  Success Rate   : {dqn_success:.1f}%                        |")
+    print(f"  |  Mean Gate Count: {dqn_mean_gates:.2f}                     |")
+    print(f"  +--------------------------------------------+")
 
-    # ── Evaluate PPO ──────────────────────────────────────
-    print("\n[evaluate] Evaluating PPO …")
+    # -- Evaluate PPO --------------------------------------
+    print("\n[evaluate] Evaluating PPO ...")
     ppo_results = evaluate_ppo(ppo_agent, env, test_states, config)
 
     ppo_mean_fid   = float(np.mean(ppo_results['fidelities']))
     ppo_success    = float(np.mean(ppo_results['successes'])) * 100.0
     ppo_mean_gates = float(np.mean(ppo_results['gate_counts']))
 
-    print(f"\n  ┌─ PPO Results ({'%d' % config.NUM_TEST_STATES} test states) ─────────────┐")
-    print(f"  │  Mean Fidelity  : {ppo_mean_fid:.4f}                    │")
-    print(f"  │  Success Rate   : {ppo_success:.1f}%                        │")
-    print(f"  │  Mean Gate Count: {ppo_mean_gates:.2f}                     │")
-    print(f"  └────────────────────────────────────────────┘")
+    print(f"\n  +-- PPO Results ({'%d' % config.NUM_TEST_STATES} test states) ----------------+")
+    print(f"  |  Mean Fidelity  : {ppo_mean_fid:.4f}                    |")
+    print(f"  |  Success Rate   : {ppo_success:.1f}%                        |")
+    print(f"  |  Mean Gate Count: {ppo_mean_gates:.2f}                     |")
+    print(f"  +--------------------------------------------+")
 
-    # ── Comparison plot ───────────────────────────────────
+    # -- Comparison plot -----------------------------------
     os.makedirs(config.PLOT_DIR, exist_ok=True)
     plot_comparison(
         dqn_results,
