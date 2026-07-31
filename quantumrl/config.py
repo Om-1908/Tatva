@@ -6,6 +6,7 @@ All hyperparameters, paths, and environment settings live here.
 Change NUM_QUBITS to scale from 1 → 4 qubits.
 """
 
+import numpy as np
 from dataclasses import dataclass, field
 from typing import List
 
@@ -29,6 +30,17 @@ class Config:
         default_factory=lambda: ['H', 'X', 'Y', 'Z', 'RX', 'RY', 'RZ', 'CNOT']
     )
 
+    # Fine-grained angle grid for RX/RY/RZ actions.  Replaces the old single
+    # fixed-angle rotation (π/4) to let the agent closely approximate arbitrary
+    # single-qubit states.  Do not reduce below 8 values without re-validating
+    # the fidelity ceiling.
+    ROTATION_ANGLES: List[float] = field(
+        default_factory=lambda: [
+            -3 * np.pi / 4, -np.pi / 2, -np.pi / 4, -np.pi / 8,
+             np.pi / 8,      np.pi / 4,  np.pi / 2,  3 * np.pi / 4, np.pi
+        ]
+    )
+
     # ──────────────────────────────────────────────
     # DQN hyperparameters
     # ──────────────────────────────────────────────
@@ -36,7 +48,7 @@ class Config:
     DQN_GAMMA: float = 0.99
     DQN_EPSILON_START: float = 1.0
     DQN_EPSILON_END: float = 0.05
-    DQN_EPSILON_DECAY: float = 0.995
+    DQN_EPSILON_DECAY: float = 0.997  # slowed from 0.995 — action space is 4.4× larger
     DQN_BATCH_SIZE: int = 64
     DQN_BUFFER_SIZE: int = 10000
     DQN_TARGET_UPDATE_FREQ: int = 100

@@ -206,8 +206,12 @@ def run_evaluation(config: Config) -> None:
     ----------
     config : Config dataclass instance
     """
-    # ── Held-out test states (different seed from training) ──
-    test_seed = config.SEED + 999
+    # ── Held-out test states ──────────────────────────────
+    # Use a seed that is guaranteed different from both the training seed
+    # (config.SEED) and the fixed offset that was used before, so results
+    # vary meaningfully across different trained models.
+    import time
+    test_seed = int(time.time()) % 100000   # fresh seed each run
     print(f"[evaluate] Generating {config.NUM_TEST_STATES} test states (seed={test_seed}) ...")
     test_states = generate_target_states(
         config.NUM_QUBITS, config.NUM_TEST_STATES, seed=test_seed
@@ -244,12 +248,18 @@ def run_evaluation(config: Config) -> None:
     dqn_mean_fid   = float(np.mean(dqn_results['fidelities']))
     dqn_success    = float(np.mean(dqn_results['successes'])) * 100.0
     dqn_mean_gates = float(np.mean(dqn_results['gate_counts']))
+    dqn_median_fid = float(np.median(dqn_results['fidelities']))
 
-    print(f"\n  +-- DQN Results ({'%d' % config.NUM_TEST_STATES} test states) ----------------+")
-    print(f"  |  Mean Fidelity  : {dqn_mean_fid:.4f}                    |")
-    print(f"  |  Success Rate   : {dqn_success:.1f}%                        |")
-    print(f"  |  Mean Gate Count: {dqn_mean_gates:.2f}                     |")
+    print(f"\n  +-- DQN Results ({config.NUM_TEST_STATES} test states) ----------------+")
+    print(f"  |  Mean Fidelity   : {dqn_mean_fid:.4f}                         |")
+    print(f"  |  Median Fidelity : {dqn_median_fid:.4f}                         |")
+    print(f"  |  Success Rate    : {dqn_success:.1f}%                           |")
+    print(f"  |  Mean Gate Count : {dqn_mean_gates:.2f}                          |")
     print(f"  +--------------------------------------------+")
+    print(f"  Per-state fidelities:")
+    for i, f in enumerate(dqn_results['fidelities']):
+        bar = '█' * int(f * 20)
+        print(f"    [{i+1:2d}] {f:.4f}  {bar}")
 
     # -- Evaluate PPO --------------------------------------
     print("\n[evaluate] Evaluating PPO ...")
@@ -258,12 +268,18 @@ def run_evaluation(config: Config) -> None:
     ppo_mean_fid   = float(np.mean(ppo_results['fidelities']))
     ppo_success    = float(np.mean(ppo_results['successes'])) * 100.0
     ppo_mean_gates = float(np.mean(ppo_results['gate_counts']))
+    ppo_median_fid = float(np.median(ppo_results['fidelities']))
 
-    print(f"\n  +-- PPO Results ({'%d' % config.NUM_TEST_STATES} test states) ----------------+")
-    print(f"  |  Mean Fidelity  : {ppo_mean_fid:.4f}                    |")
-    print(f"  |  Success Rate   : {ppo_success:.1f}%                        |")
-    print(f"  |  Mean Gate Count: {ppo_mean_gates:.2f}                     |")
+    print(f"\n  +-- PPO Results ({config.NUM_TEST_STATES} test states) ----------------+")
+    print(f"  |  Mean Fidelity   : {ppo_mean_fid:.4f}                         |")
+    print(f"  |  Median Fidelity : {ppo_median_fid:.4f}                         |")
+    print(f"  |  Success Rate    : {ppo_success:.1f}%                           |")
+    print(f"  |  Mean Gate Count : {ppo_mean_gates:.2f}                          |")
     print(f"  +--------------------------------------------+")
+    print(f"  Per-state fidelities:")
+    for i, f in enumerate(ppo_results['fidelities']):
+        bar = '█' * int(f * 20)
+        print(f"    [{i+1:2d}] {f:.4f}  {bar}")
 
     # -- Comparison plot -----------------------------------
     os.makedirs(config.PLOT_DIR, exist_ok=True)
