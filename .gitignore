@@ -2,9 +2,11 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
 
 # PyTorch models
 saved_models/
+*.pth
 
 # Logs and Plots
 logs/
@@ -15,3 +17,15 @@ plots/
 Thumbs.db
 .pytest_cache/
 
+# Virtual environments — never commit these
+quantum/
+venv/
+.venv/
+env/
+
+# IDE folders
+.idea/
+.vscode/
+
+# TensorBoard / training run logs
+runs/
