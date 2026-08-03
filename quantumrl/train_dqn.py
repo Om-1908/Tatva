@@ -16,6 +16,7 @@ What happens:
 import os
 import random
 import sys
+from collections import Counter
 
 import numpy as np
 import torch
@@ -26,7 +27,51 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import Config
 from dqn_agent import DQNAgent
 from quantum_env import QuantumCircuitEnv
-from utils import generate_target_states, plot_training_curves, save_logs
+from utils import (
+    generate_curriculum_pool,
+    generate_target_states,
+    load_logs,
+    plot_training_curves,
+    save_logs,
+)
+
+
+def _print_curriculum_fidelity_stats(
+    per_target_fidelities: dict[int, list[float]],
+    label: str,
+) -> None:
+    """Print min/max/mean of per-pool-target mean fidelities."""
+    per_target_means = [
+        float(np.mean(fids))
+        for fids in per_target_fidelities.values()
+        if fids
+    ]
+    if not per_target_means:
+        return
+    pool_min = float(np.min(per_target_means))
+    pool_max = float(np.max(per_target_means))
+    pool_mean = float(np.mean(per_target_means))
+    print(f"[{label}] Curriculum pool per-target fidelity — "
+          f"min: {pool_min:.4f} | max: {pool_max:.4f} | mean: {pool_mean:.4f}")
+
+
+def _print_fidelity_delta(log_path: str, current_mean: float, label: str) -> None:
+    """Compare final 100-episode mean fidelity against a previous log file."""
+    if not os.path.exists(log_path):
+        return
+    prev_logs = load_logs(log_path)
+    prev_fidelities = prev_logs.get('fidelities', [])
+    if not prev_fidelities:
+        return
+    window = prev_fidelities[-100:]
+    prev_mean = float(np.mean(window))
+    delta = current_mean - prev_mean
+    sign = '+' if delta >= 0 else ''
+    print(
+        f"[{label}] Previous: {prev_mean:.4f} | "
+        f"Current: {current_mean:.4f} | "
+        f"Delta: {sign}{delta:.4f}"
+    )
 
 
 def set_seeds(seed: int) -> None:
@@ -49,11 +94,28 @@ def train_dqn(config: Config) -> None:
     # ── Reproducibility ───────────────────────────────────
     set_seeds(config.SEED)
 
-    # -- Pre-generate one target state per episode ---------
-    print(f"[DQN] Generating {config.DQN_EPISODES} training target states ...")
-    target_states = generate_target_states(
-        config.NUM_QUBITS, config.DQN_EPISODES, seed=config.SEED
-    )
+    if os.path.exists(config.DQN_MODEL_PATH):
+        print(
+            f"[DQN] WARNING: Existing model at '{config.DQN_MODEL_PATH}' "
+            "will be overwritten by this run."
+        )
+
+    # -- Target sampling: curriculum pool or per-episode random -------------
+    curriculum_pool = None
+    target_states = None
+    if config.CURRICULUM_ENABLED:
+        curriculum_pool = generate_curriculum_pool(
+            config.CURRICULUM_POOL_SIZE, config.NUM_QUBITS, config.SEED
+        )
+        print(
+            f"[DQN] Curriculum mode active — sampling from a fixed pool of "
+            f"{config.CURRICULUM_POOL_SIZE} target states (with replacement)"
+        )
+    else:
+        print(f"[DQN] Generating {config.DQN_EPISODES} training target states ...")
+        target_states = generate_target_states(
+            config.NUM_QUBITS, config.DQN_EPISODES, seed=config.SEED
+        )
 
     # -- Environment & agent -------------------------------
     env = QuantumCircuitEnv(config)
@@ -67,12 +129,19 @@ def train_dqn(config: Config) -> None:
     episode_rewards    = []
     episode_fidelities = []
     episode_steps      = []
+    action_counts      = Counter()
+    per_target_fidelities: dict[int, list[float]] = {}
 
     print(f"[DQN] Starting training for {config.DQN_EPISODES} episodes ...\n")
 
     for episode in range(config.DQN_EPISODES):
-        # Each episode uses a fresh, unique target state
-        obs, _ = env.reset(target_sv=target_states[episode])
+        if config.CURRICULUM_ENABLED:
+            pool_idx = random.randint(0, len(curriculum_pool) - 1)
+            target_sv = curriculum_pool[pool_idx]
+        else:
+            pool_idx = None
+            target_sv = target_states[episode]
+        obs, _ = env.reset(target_sv=target_sv)
         episode_reward = 0.0
         done = False
         info = {'fidelity': 0.0, 'steps': 0}
@@ -80,6 +149,7 @@ def train_dqn(config: Config) -> None:
         # ── Episode loop ──────────────────────────────────
         while not done:
             action = agent.select_action(obs)
+            action_counts[action] += 1
             next_obs, reward, terminated, truncated, info = env.step(action)
             done = terminated or truncated
 
@@ -98,6 +168,8 @@ def train_dqn(config: Config) -> None:
         episode_rewards.append(episode_reward)
         episode_fidelities.append(info['fidelity'])
         episode_steps.append(info['steps'])
+        if config.CURRICULUM_ENABLED:
+            per_target_fidelities.setdefault(pool_idx, []).append(info['fidelity'])
 
         # ── Console logging every 100 episodes ───────────
         if (episode + 1) % 100 == 0:
@@ -115,16 +187,23 @@ def train_dqn(config: Config) -> None:
     os.makedirs(os.path.dirname(config.DQN_MODEL_PATH), exist_ok=True)
     agent.save(config.DQN_MODEL_PATH)
 
+    # ── Final summary (before overwriting logs) ───────────
+    final_mean_fidelity = float(np.mean(episode_fidelities[-100:]))
+    log_path = os.path.join(config.LOG_DIR, 'dqn_logs.json')
+    _print_fidelity_delta(log_path, final_mean_fidelity, 'DQN')
+
     # ── Save logs ─────────────────────────────────────────
     os.makedirs(config.LOG_DIR, exist_ok=True)
-    save_logs(
-        {
-            'rewards':    episode_rewards,
-            'fidelities': episode_fidelities,
-            'steps':      episode_steps,
-        },
-        os.path.join(config.LOG_DIR, 'dqn_logs.json'),
-    )
+    logs_dict = {
+        'rewards':    episode_rewards,
+        'fidelities': episode_fidelities,
+        'steps':      episode_steps,
+    }
+    if config.CURRICULUM_ENABLED:
+        logs_dict['curriculum_per_target_fidelities'] = {
+            str(idx): fids for idx, fids in per_target_fidelities.items()
+        }
+    save_logs(logs_dict, log_path)
 
     # ── Plot training curves ──────────────────────────────
     os.makedirs(config.PLOT_DIR, exist_ok=True)
@@ -135,10 +214,25 @@ def train_dqn(config: Config) -> None:
         os.path.join(config.PLOT_DIR, 'dqn_training.png'),
     )
 
-    # ── Final summary ─────────────────────────────────────
-    final_mean_fidelity = float(np.mean(episode_fidelities[-100:]))
     print(f"\n[DQN] Training complete.")
     print(f"[DQN] Final 100-episode mean fidelity: {final_mean_fidelity:.4f}")
+
+    if config.CURRICULUM_ENABLED:
+        _print_curriculum_fidelity_stats(per_target_fidelities, 'DQN')
+
+    if config.LOG_ACTION_HISTOGRAM:
+        used_count = sum(1 for i in range(action_size) if action_counts.get(i, 0) > 0)
+        least_used = sorted(
+            ((i, action_counts.get(i, 0)) for i in range(action_size)),
+            key=lambda x: (x[1], x[0]),
+        )[:5]
+        print(
+            f"[DQN] Action usage: {used_count}/{action_size} actions "
+            "used at least once"
+        )
+        print("[DQN] 5 least-used action indices:")
+        for idx, count in least_used:
+            print(f"  action {idx}: {count}")
 
 
 # ─────────────────────────────────────────────────────────

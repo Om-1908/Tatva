@@ -48,12 +48,14 @@ class Config:
     DQN_GAMMA: float = 0.99
     DQN_EPSILON_START: float = 1.0
     DQN_EPSILON_END: float = 0.05
-    DQN_EPSILON_DECAY: float = 0.997  # slowed from 0.995 — action space is 4.4× larger
+    # slower decay — action space grew ~4× (7 → ~28), needs longer exploration
+    DQN_EPSILON_DECAY: float = 0.998
     DQN_BATCH_SIZE: int = 64
     DQN_BUFFER_SIZE: int = 10000
     DQN_TARGET_UPDATE_FREQ: int = 100
     DQN_HIDDEN_SIZE: int = 128
-    DQN_EPISODES: int = 2000
+    # more episodes — action space grew ~4×, needs more time to explore it
+    DQN_EPISODES: int = 4000
 
     # ──────────────────────────────────────────────
     # PPO hyperparameters
@@ -74,6 +76,23 @@ class Config:
     # ──────────────────────────────────────────────
     NUM_TEST_STATES: int = 50
     SEED: int = 42
+
+    # When True, training scripts print an action-usage histogram at the end
+    # of each run (how many discrete actions were tried, least-used indices).
+    LOG_ACTION_HISTOGRAM: bool = True
+
+    # ──────────────────────────────────────────────
+    # Curriculum learning (target sampling)
+    # ──────────────────────────────────────────────
+    # When enabled, training draws targets from a fixed pool generated once at
+    # startup rather than a fresh random state every episode.  Repeated exposure
+    # lets the agent specialize on known targets before generalizing.  Set to
+    # False to restore the original fully-random-per-episode sampling for A/B
+    # comparison.
+    CURRICULUM_ENABLED: bool = True
+    # Number of fixed target statevectors in the curriculum pool (reused with
+    # replacement across episodes when CURRICULUM_ENABLED is True).
+    CURRICULUM_POOL_SIZE: int = 30
 
     # ──────────────────────────────────────────────
     # File paths (all I/O goes through config, not hardcoded strings)

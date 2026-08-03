@@ -191,9 +191,12 @@ class DQNAgent:
         # Current Q-values: Q(s, a)
         current_q = self.q_net(states_t).gather(1, actions_t)
 
-        # Target Q-values: r + γ * max_a' Q_target(s', a') * (1 - done)
+        # Double DQN target: online net selects a', target net evaluates Q(s', a').
+        # Decoupling selection from evaluation reduces overestimation bias —
+        # especially important with 31 actions where vanilla max() latches onto noise.
         with torch.no_grad():
-            max_next_q = self.target_net(next_states_t).max(dim=1, keepdim=True)[0]
+            best_actions = self.q_net(next_states_t).argmax(dim=1, keepdim=True)
+            max_next_q = self.target_net(next_states_t).gather(1, best_actions)
             target_q = rewards_t + self.config.DQN_GAMMA * max_next_q * (1.0 - dones_t)
 
         loss = F.mse_loss(current_q, target_q)

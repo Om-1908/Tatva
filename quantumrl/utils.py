@@ -89,6 +89,35 @@ def generate_target_states(
     return states
 
 
+def generate_curriculum_pool(
+    pool_size: int,
+    num_qubits: int,
+    seed: int,
+) -> List[np.ndarray]:
+    """
+    Generate a fixed pool of random target statevectors for curriculum training.
+
+    Called once at the start of training.  The returned list is reused across
+    episodes (sampled with replacement) so the agent sees repeated targets and
+    can specialize before generalizing — unlike per-episode random generation.
+
+    Parameters
+    ----------
+    pool_size   : int, number of target states in the pool
+    num_qubits  : int, number of qubits per statevector
+    seed        : int, fixed seed for reproducible pool generation
+
+    Returns
+    -------
+    List of pool_size numpy complex128 arrays
+    """
+    pool = []
+    for i in range(pool_size):
+        sv = generate_random_statevector(num_qubits, seed=seed + i)
+        pool.append(sv)
+    return pool
+
+
 # ─────────────────────────────────────────────────────────
 # Observation encoding
 # ─────────────────────────────────────────────────────────
