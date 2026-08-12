@@ -1,9 +1,7 @@
 """
 train_ppo.py
 ------------
-PPO training entry point for QuantumRL.
-
-Matches train_dqn.py output structure for direct comparison.
+PPO training entry point for QuantumRL — Scaled to 2 Qubits.
 
 Run with:
     python train_ppo.py
@@ -19,7 +17,6 @@ from collections import Counter
 import numpy as np
 import torch
 
-# Add project root to path so imports resolve correctly when run from any directory
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from config import Config
@@ -38,44 +35,34 @@ def set_seeds(seed: int) -> None:
 
 
 def train_ppo(config: Config) -> None:
-    """
-    Main training loop for PPO agent.
-
-    Parameters
-    ----------
-    config : Config dataclass instance
-    """
-    # ── 1. Reproducibility ──────────────────────────────────
+    """Main training loop for PPO agent scaled to 2 qubits."""
     set_seeds(config.SEED)
 
-    # ── 2. Device Setup ─────────────────────────────────────
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"[PPO] Training Device: {device}")
     if torch.cuda.is_available():
         gpu_name = torch.cuda.get_device_name(0)
         print(f"[PPO] GPU Detected   : {gpu_name}")
 
-    # ── 3. Environment & Agent ──────────────────────────────
     env = QuantumCircuitEnv(config)
-    obs_size = env.observation_space.shape[0]   # 10
-    action_size = env.action_space.n              # 76
+    obs_size = env.observation_space.shape[0]   # 18
+    action_size = env.action_space.n              # 154
 
     print(f"[PPO] obs_size={obs_size}  action_size={action_size}")
 
     agent = PPOAgent(obs_size, action_size, config, device)
     buffer = RolloutBuffer(config.PPO_ROLLOUT_STEPS, obs_size, device)
 
-    # ── 4. Logging & Tracking Buffers ───────────────────────
     episode_rewards = []
     episode_fidelities = []
     episode_steps_list = []
     action_counts = Counter()
 
     best_mean_fidelity = 0.0
+    best_model_path = config.PPO_MODEL_PATH.replace('.pth', '_best.pth')
 
     print(f"[PPO] Starting training for {config.PPO_EPISODES} episodes ...\n")
 
-    # ── 5. Training Loop ────────────────────────────────────
     obs, _ = env.reset()
     obs_t = torch.FloatTensor(obs).to(device)
 
@@ -86,7 +73,7 @@ def train_ppo(config: Config) -> None:
 
     while current_episode < config.PPO_EPISODES:
 
-        # ── Rollout collection phase ───────────────────────
+        # Rollout collection phase
         buffer.reset()
         for step in range(config.PPO_ROLLOUT_STEPS):
             with torch.no_grad():
@@ -114,7 +101,6 @@ def train_ppo(config: Config) -> None:
                 obs, _ = env.reset()
                 obs_t = torch.FloatTensor(obs).to(device)
 
-                # Periodic progress logging every 100 episodes (matches DQN format)
                 if current_episode % 100 == 0:
                     mean_fid = float(np.mean(episode_fidelities[-100:]))
                     current_lr = agent.optimizer.param_groups[0]['lr']
@@ -130,12 +116,14 @@ def train_ppo(config: Config) -> None:
 
                     if mean_fid > best_mean_fidelity:
                         best_mean_fidelity = mean_fid
+                        agent.save(best_model_path)
                         agent.save(config.PPO_MODEL_PATH)
+                        print(f"  *** New best model saved: {mean_fid:.4f} ***")
 
                 if current_episode >= config.PPO_EPISODES:
                     break
 
-        # ── PPO update phase ──────────────────────────────
+        # PPO update phase
         with torch.no_grad():
             _, _, _, last_value = agent.select_action(obs_t)
 
@@ -145,13 +133,11 @@ def train_ppo(config: Config) -> None:
         losses = agent.update(buffer)
         rollout_count += 1
 
-    # Ensure model is saved at end if best model wasn't reached in last 100 eps
     if not os.path.exists(config.PPO_MODEL_PATH):
         agent.save(config.PPO_MODEL_PATH)
 
     final_mean_fidelity = float(np.mean(episode_fidelities[-100:]))
 
-    # ── 6. Save Logs & Plots ────────────────────────────────
     os.makedirs(config.LOG_DIR, exist_ok=True)
     save_logs(
         {

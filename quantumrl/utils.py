@@ -99,7 +99,7 @@ def generate_curriculum_pool(
 
     Called once at the start of training.  The returned list is reused across
     episodes (sampled with replacement) so the agent sees repeated targets and
-    can specialize before generalizing — unlike per-episode random generation.
+    can specialize before generalizing.
 
     Parameters
     ----------
@@ -122,28 +122,39 @@ def generate_curriculum_pool(
 # Observation encoding
 # ─────────────────────────────────────────────────────────
 
-def encode_state(current_sv: np.ndarray, target_sv: np.ndarray) -> np.ndarray:
+def encode_state(
+    current_sv: np.ndarray,
+    target_sv: np.ndarray,
+    fidelity: float = 0.0,
+    step: int = 0,
+    max_steps: int = 20,
+) -> np.ndarray:
     """
-    Encode a (current, target) statevector pair as a flat float32 array.
+    Encode a (current, target) statevector pair + progress metrics as a flat float32 array.
 
-    Concatenates: [Re(current), Im(current), Re(target), Im(target)]
-    Length = 4 * 2^n_qubits
+    Concatenates: [Re(current), Im(current), Re(target), Im(target), fidelity, step/max_steps]
+    Length = 4 * 2^n_qubits + 2 (18 floats for 2 qubits)
 
     Parameters
     ----------
     current_sv : complex128 array of length 2^n
     target_sv  : complex128 array of length 2^n
+    fidelity   : float, current state fidelity
+    step       : int, current episode step counter
+    max_steps  : int, max episode step limit
 
     Returns
     -------
-    numpy float32 array of length 4 * 2^n
+    numpy float32 array of length 4 * 2^n + 2
     """
+    norm_step = float(step / max_steps) if max_steps > 0 else 0.0
     obs = np.concatenate([
-        current_sv.real,
-        current_sv.imag,
-        target_sv.real,
-        target_sv.imag,
-    ]).astype(np.float32)
+        current_sv.real.astype(np.float32),
+        current_sv.imag.astype(np.float32),
+        target_sv.real.astype(np.float32),
+        target_sv.imag.astype(np.float32),
+        np.array([fidelity, norm_step], dtype=np.float32),
+    ])
     return obs
 
 

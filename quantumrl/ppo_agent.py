@@ -1,11 +1,11 @@
 """
 ppo_agent.py
 ------------
-Proximal Policy Optimization (PPO) agent implementation for QuantumRL.
+Proximal Policy Optimization (PPO) agent implementation for QuantumRL — Scaled to 2 Qubits.
 
 Classes:
-  ActorCritic   – Independent Actor and Critic neural network branches for stable policy/value learning.
-  RolloutBuffer – Fixed-size CPU rollout buffer storing trajectory data and computing GAE.
+  ActorCritic   – Decoupled Actor (154 outputs) and Critic (1 output) networks (hidden_size=768).
+  RolloutBuffer – Fixed-size CPU rollout buffer pre-allocated for 8192 rollout steps.
   PPOAgent      – PPO algorithm managing interaction, policy updates, learning rate decay, and IO.
 """
 
@@ -18,27 +18,27 @@ from torch.distributions import Categorical
 
 
 # ─────────────────────────────────────────────────────────
-# Actor-Critic Network (Decoupled Architecture)
+# Actor-Critic Network (Decoupled Architecture - 2-Qubit)
 # ─────────────────────────────────────────────────────────
 
 class ActorCritic(nn.Module):
     """
-    Decoupled Actor-Critic neural network architecture.
+    Decoupled Actor-Critic neural network architecture for 2-qubit system.
 
     Actor branch (Policy):
-        Linear(obs_size, 512) -> LayerNorm(512) -> LeakyReLU(0.01)
-        Linear(512, 512)      -> LayerNorm(512) -> LeakyReLU(0.01)
-        Linear(512, 256)      -> LayerNorm(256) -> LeakyReLU(0.01)
-        Linear(256, action_size) [raw logits]
+        Linear(obs_size, 768) -> LayerNorm(768) -> LeakyReLU(0.01)
+        Linear(768, 768)      -> LayerNorm(768) -> LeakyReLU(0.01)
+        Linear(768, 384)      -> LayerNorm(384) -> LeakyReLU(0.01)
+        Linear(384, action_size) [154 logits]
 
     Critic branch (Value):
-        Linear(obs_size, 512) -> LayerNorm(512) -> LeakyReLU(0.01)
-        Linear(512, 512)      -> LayerNorm(512) -> LeakyReLU(0.01)
-        Linear(512, 256)      -> LayerNorm(256) -> LeakyReLU(0.01)
-        Linear(256, 1)           [scalar state value V(s)]
+        Linear(obs_size, 768) -> LayerNorm(768) -> LeakyReLU(0.01)
+        Linear(768, 768)      -> LayerNorm(768) -> LeakyReLU(0.01)
+        Linear(768, 384)      -> LayerNorm(384) -> LeakyReLU(0.01)
+        Linear(384, 1)           [scalar state value V(s)]
     """
 
-    def __init__(self, obs_size: int, action_size: int, hidden_size: int = 512):
+    def __init__(self, obs_size: int, action_size: int, hidden_size: int = 768):
         super().__init__()
         self.obs_size = obs_size
         self.action_size = action_size
@@ -81,7 +81,7 @@ class ActorCritic(nn.Module):
                     nn.init.orthogonal_(layer.weight, gain=gain_base)
                     nn.init.constant_(layer.bias, 0.0)
 
-        # Actor head final layer: small initial weights (0.01) for uniform initial exploration
+        # Actor head final layer: small initial scale (0.01) for uniform exploration
         nn.init.orthogonal_(self.actor[-1].weight, gain=0.01)
         nn.init.constant_(self.actor[-1].bias, 0.0)
 
@@ -106,21 +106,7 @@ class ActorCritic(nn.Module):
         return logits, value
 
     def get_action(self, state, deterministic: bool = False):
-        """
-        Sample or select action for a given state observation.
-
-        Parameters
-        ----------
-        state         : numpy array of shape (obs_size,) or torch Tensor
-        deterministic : if True, selects argmax action; if False, samples from distribution
-
-        Returns
-        -------
-        action   : int
-        log_prob : torch.Tensor scalar
-        entropy  : torch.Tensor scalar
-        value    : torch.Tensor scalar
-        """
+        """Sample or select action for a given state observation."""
         if isinstance(state, np.ndarray):
             state_t = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
         else:
@@ -145,20 +131,7 @@ class ActorCritic(nn.Module):
         return action.item(), log_prob.squeeze(0), entropy.squeeze(0), value.squeeze(0)
 
     def evaluate_actions(self, states: torch.Tensor, actions: torch.Tensor):
-        """
-        Evaluate log probabilities, state values, and entropy for a batch.
-
-        Parameters
-        ----------
-        states  : float32 tensor of shape (batch, obs_size)
-        actions : long tensor of shape (batch,)
-
-        Returns
-        -------
-        log_probs : float32 tensor of shape (batch,)
-        values    : float32 tensor of shape (batch,)
-        entropy   : float32 tensor of shape (batch,)
-        """
+        """Evaluate log probabilities, state values, and entropy for a batch."""
         logits, values = self.forward(states)
         dist = Categorical(logits=logits)
         log_probs = dist.log_prob(actions)
@@ -217,15 +190,7 @@ class RolloutBuffer:
     def compute_returns_and_advantages(
         self, last_value, gamma: float, gae_lambda: float
     ):
-        """
-        Compute Generalized Advantage Estimation (GAE) and target returns.
-
-        Parameters
-        ----------
-        last_value : scalar tensor or float, V(s_T) after rollout completion
-        gamma      : discount factor
-        gae_lambda : GAE lambda weighting parameter
-        """
+        """Compute Generalized Advantage Estimation (GAE) and target returns."""
         if isinstance(last_value, torch.Tensor):
             last_val_num = float(last_value.detach().cpu().item())
         else:
@@ -287,10 +252,7 @@ class RolloutBuffer:
 # ─────────────────────────────────────────────────────────
 
 class PPOAgent:
-    """
-    PPO Agent handling action selection, policy/value network optimization,
-    learning rate decay schedule, and model persistence.
-    """
+    """PPO Agent for 2-qubit quantum circuit synthesis."""
 
     def __init__(self, obs_size: int, action_size: int, config, device: torch.device):
         self.config = config
@@ -298,7 +260,9 @@ class PPOAgent:
         self.obs_size = obs_size
         self.action_size = action_size
 
-        self.ac = ActorCritic(obs_size, action_size, config.PPO_HIDDEN_SIZE).to(device)
+        hidden_size = getattr(config, 'PPO_HIDDEN_SIZE', 768)
+
+        self.ac = ActorCritic(obs_size, action_size, hidden_size).to(device)
 
         self.optimizer = torch.optim.Adam(
             self.ac.parameters(), lr=config.PPO_LR, eps=1e-5
@@ -328,17 +292,7 @@ class PPOAgent:
             return action
 
     def update(self, buffer: RolloutBuffer) -> dict:
-        """
-        Perform PPO clipped surrogate policy update and value function training.
-
-        Parameters
-        ----------
-        buffer : RolloutBuffer containing collected rollouts and computed GAE
-
-        Returns
-        -------
-        dict containing mean policy_loss, value_loss, and entropy metrics
-        """
+        """Perform PPO clipped surrogate policy update and value function training."""
         policy_losses = []
         value_losses = []
         entropies = []

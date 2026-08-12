@@ -1,11 +1,11 @@
 """
 evaluate.py
 -----------
-Evaluation script for QuantumRL.
+Evaluation script for QuantumRL — Scaled to 2 Qubits.
 
 Loads pre-trained DQN and PPO models, evaluates both on the exact same
-held-out test set of 500 Haar-random target statevectors, and prints a
-side-by-side comparison table and grouped bar chart.
+held-out test set of 500 Haar-random 2-qubit target statevectors (seed=1041),
+and prints a side-by-side comparison table and grouped bar chart.
 
 Run with:
     python evaluate.py
@@ -29,25 +29,8 @@ from quantum_env import QuantumCircuitEnv
 from utils import generate_target_states
 
 
-# ─────────────────────────────────────────────────────────
-# Evaluation helpers
-# ─────────────────────────────────────────────────────────
-
 def evaluate_dqn(agent: DQNAgent, env: QuantumCircuitEnv, test_states, config: Config):
-    """
-    Run greedy deterministic evaluation of a DQN agent on every test state.
-
-    Parameters
-    ----------
-    agent       : trained DQNAgent
-    env         : QuantumCircuitEnv instance
-    test_states : list of target statevectors
-    config      : Config dataclass
-
-    Returns
-    -------
-    dict with keys 'fidelities', 'gate_counts', 'successes'
-    """
+    """Run greedy deterministic evaluation of a DQN agent on every test state."""
     original_epsilon = agent.epsilon
     agent.epsilon = 0.0   # Greedy policy
 
@@ -82,20 +65,7 @@ def evaluate_dqn(agent: DQNAgent, env: QuantumCircuitEnv, test_states, config: C
 
 
 def evaluate_ppo(agent: PPOAgent, env: QuantumCircuitEnv, test_states, config: Config):
-    """
-    Run deterministic greedy evaluation of a PPO agent on every test state.
-
-    Parameters
-    ----------
-    agent       : trained PPOAgent
-    env         : QuantumCircuitEnv instance
-    test_states : list of target statevectors
-    config      : Config dataclass
-
-    Returns
-    -------
-    dict with keys 'fidelities', 'gate_counts', 'successes'
-    """
+    """Run deterministic greedy evaluation of a PPO agent on every test state."""
     fidelities = []
     gate_counts = []
     successes = []
@@ -124,20 +94,12 @@ def evaluate_ppo(agent: PPOAgent, env: QuantumCircuitEnv, test_states, config: C
     }
 
 
-# ─────────────────────────────────────────────────────────
-# Comparison plot
-# ─────────────────────────────────────────────────────────
-
 def plot_comparison(
     dqn_results: dict,
     ppo_results: dict,
     save_path: str,
 ) -> None:
-    """
-    Save a four-metric grouped bar chart comparing DQN vs. PPO.
-
-    Metrics: Mean Fidelity, Median Fidelity, Success Rate (%), Avg Gate Count
-    """
+    """Save a four-metric grouped bar chart comparing DQN vs. PPO on 2-qubit synthesis."""
     os.makedirs(os.path.dirname(save_path) if os.path.dirname(save_path) else '.', exist_ok=True)
 
     metrics = ['Mean Fidelity', 'Median Fidelity', 'Success Rate (%)', 'Avg Gate Count']
@@ -160,7 +122,7 @@ def plot_comparison(
 
     fig, axes = plt.subplots(1, 4, figsize=(16, 4.5))
     fig.patch.set_facecolor('#1a1a2e')
-    fig.suptitle('DQN vs PPO — Evaluation Comparison (500 Test States)', color='white', fontsize=14, fontweight='bold')
+    fig.suptitle('DQN vs PPO — 2-Qubit Evaluation Comparison (500 Test States)', color='white', fontsize=14, fontweight='bold')
 
     colors_dqn = '#e94560'
     colors_ppo = '#0f9b8e'
@@ -170,7 +132,6 @@ def plot_comparison(
         bars = ax.bar(['DQN', 'PPO'], [dv, pv], color=[colors_dqn, colors_ppo],
                       width=0.5, edgecolor='white', linewidth=0.6)
 
-        # Value labels on bars
         for bar, val in zip(bars, [dv, pv]):
             ax.text(
                 bar.get_x() + bar.get_width() / 2.0,
@@ -194,22 +155,11 @@ def plot_comparison(
     print(f"[evaluate] Comparison chart saved -> {save_path}")
 
 
-# ─────────────────────────────────────────────────────────
-# Main Execution
-# ─────────────────────────────────────────────────────────
-
 def run_evaluation(config: Config) -> None:
-    """
-    Load saved models and run full evaluation on 500 held-out test states.
-
-    Parameters
-    ----------
-    config : Config dataclass instance
-    """
-    # ── Held-out test states: seed = config.SEED + 999 ─────
+    """Load saved 2-qubit models and run full evaluation on 500 held-out test states."""
     test_seed = config.SEED + 999
     num_test_states = config.NUM_TEST_STATES
-    print(f"[evaluate] Generating {num_test_states} test states (seed={test_seed}) ...")
+    print(f"[evaluate] Generating {num_test_states} 2-qubit test states (seed={test_seed}) ...")
     test_states = generate_target_states(
         config.NUM_QUBITS, num_test_states, seed=test_seed
     )
@@ -219,7 +169,6 @@ def run_evaluation(config: Config) -> None:
     action_size = env.action_space.n
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # ── Load DQN Agent ────────────────────────────────────
     if not os.path.exists(config.DQN_MODEL_PATH):
         raise FileNotFoundError(
             f"DQN model not found at {config.DQN_MODEL_PATH}. "
@@ -229,7 +178,6 @@ def run_evaluation(config: Config) -> None:
     dqn_agent = DQNAgent(obs_size, action_size, config)
     dqn_agent.load(config.DQN_MODEL_PATH)
 
-    # ── Load PPO Agent ────────────────────────────────────
     if not os.path.exists(config.PPO_MODEL_PATH):
         raise FileNotFoundError(
             f"PPO model not found at {config.PPO_MODEL_PATH}. "
@@ -239,8 +187,7 @@ def run_evaluation(config: Config) -> None:
     ppo_agent = PPOAgent(obs_size, action_size, config, device)
     ppo_agent.load(config.PPO_MODEL_PATH)
 
-    # ── Evaluate DQN ──────────────────────────────────────
-    print("\n[evaluate] Evaluating DQN on test set ...")
+    print("\n[evaluate] Evaluating DQN on 2-qubit test set ...")
     dqn_results = evaluate_dqn(dqn_agent, env, test_states, config)
 
     dqn_mean_fid = float(np.mean(dqn_results['fidelities']))
@@ -249,8 +196,7 @@ def run_evaluation(config: Config) -> None:
     dqn_succ_gates = [g for g, s in zip(dqn_results['gate_counts'], dqn_results['successes']) if s]
     dqn_mean_gates = float(np.mean(dqn_succ_gates)) if dqn_succ_gates else float('nan')
 
-    # ── Evaluate PPO ──────────────────────────────────────
-    print("[evaluate] Evaluating PPO on test set ...")
+    print("[evaluate] Evaluating PPO on 2-qubit test set ...")
     ppo_results = evaluate_ppo(ppo_agent, env, test_states, config)
 
     ppo_mean_fid = float(np.mean(ppo_results['fidelities']))
@@ -259,19 +205,17 @@ def run_evaluation(config: Config) -> None:
     ppo_succ_gates = [g for g, s in zip(ppo_results['gate_counts'], ppo_results['successes']) if s]
     ppo_mean_gates = float(np.mean(ppo_succ_gates)) if ppo_succ_gates else float('nan')
 
-    # ── Print Side-by-Side Comparison Table ───────────────
     print("\n+==============================================+")
-    print(f"|         EVALUATION RESULTS ({num_test_states} states)         |")
-    print("+==================+============+==============+")
+    print(f"|      2-QUBIT EVALUATION RESULTS ({num_test_states} states)    |")
+    print("+==================+============+=============="+)
     print("| Metric           |    DQN     |     PPO      |")
-    print("+==================+============+==============+")
+    print("+==================+============+=============="+)
     print(f"| Mean Fidelity    |   {dqn_mean_fid:.4f}   |    {ppo_mean_fid:.4f}    |")
     print(f"| Median Fidelity  |   {dqn_median_fid:.4f}   |    {ppo_median_fid:.4f}    |")
     print(f"| Success Rate     |   {dqn_success:6.1f}%   |    {ppo_success:6.1f}%    |")
     print(f"| Avg Gate Count   |    {dqn_mean_gates:6.1f}    |     {ppo_mean_gates:6.1f}     |")
     print("+==================+============+==============+")
 
-    # ── Plot Comparison Chart ─────────────────────────────
     save_plot_path = os.path.join('plots', 'dqn_vs_ppo_comparison.png')
     plot_comparison(dqn_results, ppo_results, save_plot_path)
 
