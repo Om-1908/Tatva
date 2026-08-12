@@ -4,14 +4,6 @@ __pycache__/
 *$py.class
 *.pyc
 
-# PyTorch models
-saved_models/
-*.pth
-
-# Logs and Plots
-logs/
-plots/
-
 # OS-specific
 .DS_Store
 Thumbs.db
@@ -27,5 +19,5 @@ env/
 .idea/
 .vscode/
 
-# TensorBoard / training run logs
+# TensorBoard / temporary run logs
 runs/
