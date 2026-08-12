@@ -27,20 +27,28 @@ import torch.nn.functional as F
 
 class QNetwork(nn.Module):
     """
-    Three-layer MLP that maps observations to per-action Q-values.
+    Deep Q-network mapping observations to per-action Q-values.
 
-    Architecture: obs_size → hidden → hidden → action_size
-    Activations : ReLU between layers; no activation on output.
+    Architecture:
+        obs_size → hidden_size → hidden_size → hidden_size//2 → action_size
+    Normalisation: LayerNorm after each hidden linear layer.
+    Activation   : LeakyReLU(0.01) — avoids dying-neuron problem under the
+                   dense fidelity-gain reward which can produce negative values.
     """
 
     def __init__(self, obs_size: int, action_size: int, hidden_size: int):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(obs_size, hidden_size),
-            nn.ReLU(),
+            nn.LayerNorm(hidden_size),
+            nn.LeakyReLU(0.01),
             nn.Linear(hidden_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, action_size),
+            nn.LayerNorm(hidden_size),
+            nn.LeakyReLU(0.01),
+            nn.Linear(hidden_size, hidden_size // 2),
+            nn.LayerNorm(hidden_size // 2),
+            nn.LeakyReLU(0.01),
+            nn.Linear(hidden_size // 2, action_size),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

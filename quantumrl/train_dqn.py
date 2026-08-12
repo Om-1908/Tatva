@@ -119,29 +119,39 @@ def train_dqn(config: Config) -> None:
 
     # -- Environment & agent -------------------------------
     env = QuantumCircuitEnv(config)
-    obs_size    = env.observation_space.shape[0]
+    obs_size    = env.observation_space.shape[0]   # 4*2^n_qubits + 2
     action_size = env.action_space.n
 
     print(f"[DQN] obs_size={obs_size}  action_size={action_size}")
     agent = DQNAgent(obs_size, action_size, config)
+    print(f"[DQN] Training device: {agent.device}")
+
+    # -- Replay buffer warm-up (5000 random transitions) ---
+    # Ensures the first gradient update sees diverse uncorrelated experiences
+    # rather than highly correlated early-episode transitions.
+    print("[DQN] Warming up replay buffer with 5000 random transitions...")
+    warmup_obs, _ = env.reset()
+    for _wu in range(5000):
+        warmup_action = env.action_space.sample()
+        warmup_next_obs, warmup_reward, warmup_term, warmup_trunc, _ = env.step(warmup_action)
+        agent.buffer.push(warmup_obs, warmup_action, warmup_reward,
+                          warmup_next_obs, float(warmup_term or warmup_trunc))
+        warmup_obs = warmup_next_obs
+        if warmup_term or warmup_trunc:
+            warmup_obs, _ = env.reset()
+    print(f"[DQN] Warm-up complete. Buffer size: {len(agent.buffer)}")
 
     # -- Training log buffers ------------------------------
     episode_rewards    = []
     episode_fidelities = []
     episode_steps      = []
     action_counts      = Counter()
-    per_target_fidelities: dict[int, list[float]] = {}
 
     print(f"[DQN] Starting training for {config.DQN_EPISODES} episodes ...\n")
 
     for episode in range(config.DQN_EPISODES):
-        if config.CURRICULUM_ENABLED:
-            pool_idx = random.randint(0, len(curriculum_pool) - 1)
-            target_sv = curriculum_pool[pool_idx]
-        else:
-            pool_idx = None
-            target_sv = target_states[episode]
-        obs, _ = env.reset(target_sv=target_sv)
+        # Fresh random target generated inside env.reset() each episode
+        obs, _ = env.reset()
         episode_reward = 0.0
         done = False
         info = {'fidelity': 0.0, 'steps': 0}
@@ -168,8 +178,6 @@ def train_dqn(config: Config) -> None:
         episode_rewards.append(episode_reward)
         episode_fidelities.append(info['fidelity'])
         episode_steps.append(info['steps'])
-        if config.CURRICULUM_ENABLED:
-            per_target_fidelities.setdefault(pool_idx, []).append(info['fidelity'])
 
         # ── Console logging every 100 episodes ───────────
         if (episode + 1) % 100 == 0:
@@ -199,10 +207,6 @@ def train_dqn(config: Config) -> None:
         'fidelities': episode_fidelities,
         'steps':      episode_steps,
     }
-    if config.CURRICULUM_ENABLED:
-        logs_dict['curriculum_per_target_fidelities'] = {
-            str(idx): fids for idx, fids in per_target_fidelities.items()
-        }
     save_logs(logs_dict, log_path)
 
     # ── Plot training curves ──────────────────────────────
@@ -216,9 +220,6 @@ def train_dqn(config: Config) -> None:
 
     print(f"\n[DQN] Training complete.")
     print(f"[DQN] Final 100-episode mean fidelity: {final_mean_fidelity:.4f}")
-
-    if config.CURRICULUM_ENABLED:
-        _print_curriculum_fidelity_stats(per_target_fidelities, 'DQN')
 
     if config.LOG_ACTION_HISTOGRAM:
         used_count = sum(1 for i in range(action_size) if action_counts.get(i, 0) > 0)
