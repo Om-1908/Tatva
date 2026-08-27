@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react'
-import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion'
+import { motion, useScroll, useTransform, useSpring, useMotionValueEvent } from 'framer-motion'
 import VariableProximity from '../ui/VariableProximity'
 
 const TOTAL_FRAMES = 50
@@ -49,14 +49,24 @@ export default function QuantumScrollExplode() {
     }
   }, [])
 
-  // Scroll Progress across 500vh
+  // Scroll Progress across 500vh with Spring Physics Smoothing
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end end'],
   })
 
-  // Frame Index Mapping (0 -> 49)
-  const rawFrameIndex = useTransform(scrollYProgress, [0, 1], [0, TOTAL_FRAMES - 1])
+  // Smooth scroll progress using spring physics for 60fps/120fps fluid movement
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 200,
+    damping: 28,
+    restDelta: 0.0001,
+  })
+
+  // Smooth Frame Index Mapping (0 -> 49)
+  const rawFrameIndex = useTransform(smoothProgress, [0, 1], [0, TOTAL_FRAMES - 1])
+
+  const animFrameIdRef = useRef(null)
+  const lastDrawnIndexRef = useRef(-1)
 
   // Canvas drawing: Hardware occupies right ~65-70%, leaving Left Safe Column free for text
   const drawFrame = useCallback((frameIdx) => {
@@ -65,27 +75,19 @@ export default function QuantumScrollExplode() {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    const clampedIndex = Math.max(0, Math.min(TOTAL_FRAMES - 1, Math.floor(frameIdx)))
+    const clampedIndex = Math.max(0, Math.min(TOTAL_FRAMES - 1, Math.round(frameIdx)))
+    if (clampedIndex === lastDrawnIndexRef.current) return
+    lastDrawnIndexRef.current = clampedIndex
+
     const img = imagesRef.current[clampedIndex]
     if (!img || !img.complete) return
 
-    const dpr = window.devicePixelRatio || 1
     const width = canvas.clientWidth
     const height = canvas.clientHeight
-
-    if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-      canvas.width = width * dpr
-      canvas.height = height * dpr
-    }
-
-    ctx.save()
-    ctx.scale(dpr, dpr)
 
     // Clear background with exact frame edge color (#030802)
     ctx.fillStyle = '#030802'
     ctx.fillRect(0, 0, width, height)
-
-    const isMobile = width < 768
 
     // Contain scaling: 100% of image frame is visible with ZERO cropping on top, bottom, or sides!
     const imgRatio = (img.naturalWidth || 1920) / (img.naturalHeight || 1080)
@@ -104,32 +106,51 @@ export default function QuantumScrollExplode() {
     const drawY = (height - drawH) / 2
 
     ctx.drawImage(img, drawX, drawY, drawW, drawH)
-    ctx.restore()
   }, [])
 
-  // Subscribe to scroll updates
+  // Subscribe to scroll updates with VSync throttling
   useMotionValueEvent(rawFrameIndex, 'change', (latest) => {
     if (imagesLoaded && !prefersReducedMotion) {
-      requestAnimationFrame(() => drawFrame(latest))
+      if (animFrameIdRef.current) {
+        cancelAnimationFrame(animFrameIdRef.current)
+      }
+      animFrameIdRef.current = requestAnimationFrame(() => drawFrame(latest))
     }
   })
 
   // Initial draw & resize handlers
+  const updateCanvasDimensions = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const width = canvas.clientWidth
+    const height = canvas.clientHeight
+    if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
+      canvas.width = width * dpr
+      canvas.height = height * dpr
+      const ctx = canvas.getContext('2d')
+      if (ctx) ctx.scale(dpr, dpr)
+    }
+  }, [])
+
   useEffect(() => {
     if (imagesLoaded && canvasRef.current) {
+      updateCanvasDimensions()
       drawFrame(0)
     }
-  }, [imagesLoaded, drawFrame])
+  }, [imagesLoaded, drawFrame, updateCanvasDimensions])
 
   useEffect(() => {
     const handleResize = () => {
       if (imagesLoaded) {
+        updateCanvasDimensions()
+        lastDrawnIndexRef.current = -1
         drawFrame(rawFrameIndex.get() || 0)
       }
     }
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [imagesLoaded, drawFrame, rawFrameIndex])
+  }, [imagesLoaded, drawFrame, rawFrameIndex, updateCanvasDimensions])
 
   // Canvas container smooth fade & scale on entry and exit
   const canvasOpacity = useTransform(scrollYProgress, [0, 0.04, 0.90, 0.98], [0.15, 1, 1, 0])
