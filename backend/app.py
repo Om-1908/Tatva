@@ -31,6 +31,15 @@ CORS(app, resources={
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+@app.route('/', methods=['GET'])
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({
+        "status": "healthy",
+        "service": "TATVA Quantum Synthesis API",
+        "timestamp": time.time()
+    }), 200
+
 # The line above sets the ROOT logger to INFO, which every library's logger
 # inherits unless told otherwise — that's what was printing Qiskit's
 # per-transpiler-pass timings and werkzeug's per-request lines on every
