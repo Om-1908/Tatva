@@ -10,7 +10,11 @@ const AboutSection = () => {
     >
       <div ref={ref} className="max-w-[820px] mx-auto text-center space-y-10">
         <div className="inline-flex items-center gap-3">
-          <img src="/tatva_bg.png" alt="TATVA Logo" className="h-6 w-auto object-contain" />
+          <img
+            src="/tatva_bg.png"
+            alt="TATVA Logo"
+            className="h-6 w-auto object-contain drop-shadow-[0_0_10px_rgba(56,189,248,0.25)]"
+          />
           <span className="font-label-sm text-label-sm text-secondary tracking-widest uppercase">
             What is TATVA
           </span>

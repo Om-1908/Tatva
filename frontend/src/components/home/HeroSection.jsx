@@ -34,7 +34,7 @@ const HeroSection = () => {
 
   return (
     <section ref={heroContainerRef} className="min-h-screen flex flex-col justify-center items-center text-center px-margin-mobile md:px-margin-desktop relative overflow-hidden pt-24 md:pt-28">
-      {/* Video Background behind Hero text */}
+      {/* Video Background - Crystal clear without heavy masking */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <video
           src={quantumBgVideo}
@@ -42,10 +42,10 @@ const HeroSection = () => {
           loop
           muted
           playsInline
-          className="w-full h-full object-cover opacity-60 filter brightness-90 mix-blend-screen scale-105"
+          className="w-full h-full object-cover"
         />
-        {/* Dark Gradient Overlay for text contrast */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#010101]/60 via-transparent to-[#010101]/95" />
+        {/* Minimal soft radial vignette only behind the text for essential readability */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_48%,rgba(0,0,0,0.45)_0%,rgba(0,0,0,0)_100%)] pointer-events-none" />
       </div>
 
       {/* Ambient Background Orbs */}
@@ -72,7 +72,7 @@ const HeroSection = () => {
       </div>
 
       <div className="max-w-4xl mx-auto space-y-8 z-10">
-        <h1 className="hero-fade-up fade-up delay-500 font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface tracking-tight leading-tight">
+        <h1 className="hero-fade-up fade-up delay-500 font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface tracking-tight leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]">
           <VariableProximity
             label="Automated Quantum Circuit Synthesis"
             className="font-headline-lg-mobile md:font-headline-lg text-on-surface cursor-default select-none"

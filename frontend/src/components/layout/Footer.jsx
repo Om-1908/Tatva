@@ -6,7 +6,11 @@ const Footer = () => {
       <div className="max-w-max-width mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
         <div className="flex flex-col space-y-2">
           <Link to="/">
-            <img src="/tatva_bg.png" alt="TATVA Logo" className="h-8 md:h-9 w-auto object-contain hover:opacity-90 transition-opacity" />
+            <img
+              src="/tatva_bg.png"
+              alt="TATVA Logo"
+              className="h-8 md:h-9 w-auto object-contain drop-shadow-[0_0_12px_rgba(56,189,248,0.2)] hover:drop-shadow-[0_0_18px_rgba(56,189,248,0.45)] hover:brightness-110 transition-all duration-300"
+            />
           </Link>
           <span className="font-label-sm text-label-sm text-outline">Precise Quantum Intelligence</span>
         </div>

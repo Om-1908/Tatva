@@ -62,14 +62,18 @@ const ConfigStrip = () => {
     if (setTargetState) {
       setTargetState(presetLabel, null, numQubits)
     }
+    if (resetCircuit) resetCircuit()
+    else if (clearCircuit) clearCircuit()
   }
 
   const handleBeginSynthesis = () => {
     if (!selectedState) return
+    // Ensure the interactive validation canvas starts completely clean
+    if (resetCircuit) resetCircuit()
+    else if (clearCircuit) clearCircuit()
+
     if (status === 'complete') {
       resetSynthesis()
-      if (resetCircuit) resetCircuit()
-      else if (clearCircuit) clearCircuit()
       setTimeout(() => {
         runSynthesis(selectedState, numQubits)
       }, 100)
@@ -77,6 +81,7 @@ const ConfigStrip = () => {
       runSynthesis(selectedState, numQubits)
     }
   }
+
 
   // Custom vector amplitude cell edit
   const handleCustomCellChange = (idx, field, value) => {
@@ -164,7 +169,7 @@ const ConfigStrip = () => {
               <select
                 value={numQubits}
                 onChange={(e) => handleQubitChange(Number(e.target.value))}
-                className="bg-[#1e1b2e] hover:bg-[#28243d] text-white font-mono text-base font-bold px-4 py-2.5 rounded-xl border border-[#0062ff]/50 hover:border-[#0062ff] focus:border-[#0062ff] focus:ring-2 focus:ring-[#0062ff]/40 outline-none cursor-pointer transition-all duration-300 shadow-md hover:shadow-[0_0_15px_rgba(0,98,255,0.4)] min-w-[140px]"
+                className="apple-select text-white font-mono text-sm font-bold px-4 py-2.5 min-w-[140px] cursor-pointer"
               >
                 <option value={1} className="bg-[#120F17] text-white">1 Qubit</option>
                 <option value={2} className="bg-[#120F17] text-white">2 Qubits</option>
@@ -181,7 +186,7 @@ const ConfigStrip = () => {
               <select
                 value={selectedState || (states[0] || '')}
                 onChange={(e) => handlePresetSelect(e.target.value)}
-                className="bg-[#1e1b2e] hover:bg-[#28243d] text-white font-mono text-base font-bold px-4 py-2.5 rounded-xl border border-[#0062ff]/50 hover:border-[#0062ff] focus:border-[#0062ff] focus:ring-2 focus:ring-[#0062ff]/40 outline-none cursor-pointer transition-all duration-300 shadow-md hover:shadow-[0_0_15px_rgba(0,98,255,0.4)] min-w-[160px]"
+                className="apple-select text-white font-mono text-sm font-bold px-4 py-2.5 min-w-[160px] cursor-pointer"
               >
                 {states.map((s) => (
                   <option key={s} value={s} className="bg-[#120F17] text-white font-mono">
@@ -202,15 +207,15 @@ const ConfigStrip = () => {
             <label className="text-xs font-semibold text-outline uppercase tracking-wider opacity-0 pointer-events-none">Custom</label>
             <button
               onClick={() => setShowCustomModal(!showCustomModal)}
-              className={`px-5 py-2.5 text-sm font-mono font-bold rounded-xl border transition-all duration-300 flex items-center gap-2 shadow-md ${
+              className={`apple-btn-base px-4 py-2.5 text-xs font-mono font-bold rounded-md border ${
                 showCustomModal || (selectedState && selectedState.startsWith('|Custom'))
-                  ? 'bg-[#0062ff] text-white border-[#0062ff] shadow-[0_0_15px_rgba(0,98,255,0.6)]'
-                  : 'bg-[#1e1b2e] hover:bg-[#28243d] text-white border-[#0062ff]/50 hover:border-[#0062ff]'
+                  ? 'bg-[#0062ff] text-white border-indigo-400/50 shadow-[0_0_15px_rgba(0,98,255,0.5)]'
+                  : 'apple-btn-secondary'
               }`}
             >
               <span>⚙️</span>
               <span>Custom Statevector</span>
-              <span className="text-xs opacity-75">{showCustomModal ? '▲' : '▼'}</span>
+              <span className="text-[10px] opacity-75">{showCustomModal ? '▲' : '▼'}</span>
             </button>
           </div>
         </div>
@@ -219,22 +224,22 @@ const ConfigStrip = () => {
         <button
           onClick={handleBeginSynthesis}
           disabled={!selectedState || status === 'running'}
-          className="mt-6 md:mt-0 px-9 py-3.5 bg-primary-container text-white text-sm font-bold uppercase tracking-widest rounded-xl primary-glow hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="apple-btn-base apple-btn-primary mt-6 md:mt-0 px-8 py-3.5 bg-primary-container text-white text-xs font-bold uppercase tracking-widest gap-2 shrink-0 shadow-lg disabled:opacity-40"
         >
           {status === 'running' ? (
             <>
               <span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>
-              <span>Synthesizing...</span>
+              <span className="leading-none">Synthesizing...</span>
             </>
           ) : status === 'complete' ? (
             <>
               <span className="material-symbols-outlined text-[18px]">refresh</span>
-              <span>Re-synthesize ↺</span>
+              <span className="leading-none">Re-synthesize ↺</span>
             </>
           ) : (
             <>
               <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-              <span>Begin Synthesis</span>
+              <span className="leading-none">Begin Synthesis</span>
             </>
           )}
         </button>
@@ -317,13 +322,13 @@ const ConfigStrip = () => {
             <div className="flex items-center gap-3">
               <button
                 onClick={handleNormalize}
-                className="bg-[#28243d] hover:bg-[#383354] text-white text-xs font-mono font-semibold px-3.5 py-2 rounded-xl transition-colors border border-[#0062ff]/40"
+                className="apple-btn-base apple-btn-secondary text-xs font-mono font-semibold px-4 py-2"
               >
                 Normalize Automatically
               </button>
               <button
                 onClick={handleCustomApply}
-                className="bg-[#0062ff] hover:bg-[#0050d4] text-white text-xs font-semibold px-5 py-2 rounded-xl transition-all shadow-md active:scale-95"
+                className="apple-btn-base apple-btn-primary bg-[#0062ff] text-white text-xs font-semibold px-5 py-2"
               >
                 Set Custom State
               </button>

@@ -34,6 +34,7 @@ function formatAngleDisplay(theta) {
  * Works for presets, JSON imports, RL agent synthesis, and manual drag-and-drop.
  */
 export function getCellGateInfo(circuit, qubit, step, numQubits) {
+  if (!circuit || !Array.isArray(circuit)) return null
   for (let q = 0; q < numQubits; q++) {
     const g = circuit[q]?.[step]
     if (!g) continue
@@ -78,7 +79,103 @@ export function getCellGateInfo(circuit, qubit, step, numQubits) {
   return null
 }
 
-export default function CircuitCell({
+function GateVisual({ gate, isSelected = false }) {
+  if (!gate) return null
+  const role = gate?.role
+  const typeUpper = (gate?.type || '').toUpperCase()
+
+  const isControlDot = role === 'CONTROL' || (typeUpper === 'CZ' && role === 'CZ')
+  const isTargetPlus =
+    role === 'TARGET' ||
+    typeUpper === 'CNOT_TARGET' ||
+    typeUpper === 'CCNOT_TARGET' ||
+    typeUpper === 'CNOT' ||
+    typeUpper === 'CX' ||
+    typeUpper === 'CCNOT' ||
+    typeUpper === 'TOFFOLI' ||
+    typeUpper === 'X' ||
+    typeUpper === 'NOT'
+  const isSwapCross = role === 'SWAP' || typeUpper === 'SWAP'
+
+  if (isControlDot) {
+    return (
+      <div
+        className={`w-4 h-4 rounded-full bg-[#29b6f6] shadow-md flex items-center justify-center transition-transform ${
+          isSelected ? 'ring-2 ring-white scale-110' : ''
+        }`}
+      />
+    )
+  }
+
+  if (isTargetPlus) {
+    return (
+      <div
+        className={`w-8 h-8 apple-squircle-gate bg-[#29b6f6] border border-white/40 flex items-center justify-center shadow-md transition-transform ${
+          isSelected ? 'ring-2 ring-white scale-105' : ''
+        }`}
+      >
+        <svg className="w-5 h-5 text-[#11111a]" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4" fill="none" strokeLinecap="square">
+          <line x1="12" y1="4" x2="12" y2="20" />
+          <line x1="4" y1="12" x2="20" y2="12" />
+        </svg>
+      </div>
+    )
+  }
+
+  if (isSwapCross) {
+    return (
+      <div
+        className={`w-7 h-7 flex items-center justify-center text-[#29b6f6] font-bold text-lg select-none transition-transform ${
+          isSelected ? 'ring-2 ring-white rounded-xs' : ''
+        }`}
+      >
+        ✕
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className={`w-9 h-9 apple-squircle-gate flex flex-col items-center justify-center font-bold font-mono text-xs shadow-md border border-white/20 transition-all ${
+        GATE_COLOR_MAP[gate.type] || 'bg-[#29b6f6] text-white'
+      } ${isSelected ? 'ring-2 ring-white scale-105 shadow-xl' : ''}`}
+    >
+      <span className="leading-none">{gate.type === 'NOT' ? 'X' : gate.type}</span>
+      {gate.theta !== undefined && (
+        <span className="text-[8px] leading-none font-normal opacity-90 mt-0.5">
+          {formatAngleDisplay(gate.theta)}
+        </span>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Pure Read-Only Cell: Does NOT use React DnD hooks at all.
+ * Guaranteed to never throw "Expected drag drop context".
+ */
+function ReadOnlyCircuitCell({ qubit, step, numQubits, customCircuit }) {
+  const gate = getCellGateInfo(customCircuit, qubit, step, numQubits)
+
+  return (
+    <div className="w-[48px] h-[48px] relative flex items-center justify-center border-r border-[#393939]/60 select-none">
+      {/* Horizontal wire line */}
+      <div className="absolute left-0 right-0 h-[1.5px] bg-[#525252] z-0 pointer-events-none" />
+
+      {/* Render Gate Element statically */}
+      {gate && (
+        <div className="z-20 relative flex items-center justify-center cursor-default pointer-events-none" title={`${gate.type} gate`}>
+          <GateVisual gate={gate} isSelected={false} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Interactive Cell: Connected to react-dnd and useCircuitStore
+ */
+function InteractiveCircuitCell({
   qubit,
   step,
   isSelected,
@@ -87,11 +184,9 @@ export default function CircuitCell({
   numQubits,
 }) {
   const { circuit, addGate, moveGate } = useCircuitStore()
-
   const gate = getCellGateInfo(circuit, qubit, step, numQubits)
   const anchorQ = gate?.anchorQubit ?? qubit
 
-  // Drag handler for moving an ALREADY PLACED gate on the canvas
   const [{ isDraggingPlaced }, dragPlacedRef] = useDrag(
     () => ({
       type: 'PLACED_GATE',
@@ -104,7 +199,6 @@ export default function CircuitCell({
     [anchorQ, step, gate]
   )
 
-  // Drop handler
   const [{ isOver, canDrop }, dropRef] = useDrop(
     () => ({
       accept: ['GATE', 'PLACED_GATE'],
@@ -126,7 +220,7 @@ export default function CircuitCell({
 
   const handleClick = (e) => {
     e.stopPropagation()
-    if (gate) {
+    if (gate && onSelectGate) {
       onSelectGate({ qubit: anchorQ, step, gate })
     }
   }
@@ -134,29 +228,10 @@ export default function CircuitCell({
   const handleContextMenu = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    if (gate) {
+    if (gate && onRemoveGate) {
       onRemoveGate(anchorQ, step)
     }
   }
-
-  const role = gate?.role
-  const typeUpper = (gate?.type || '').toUpperCase()
-
-  const isControlDot = role === 'CONTROL' || (typeUpper === 'CZ' && role === 'CZ')
-
-  // Quantum Composer Target Badge: Rounded squircle badge with white border and black plus sign
-  const isTargetPlus =
-    role === 'TARGET' ||
-    typeUpper === 'CNOT_TARGET' ||
-    typeUpper === 'CCNOT_TARGET' ||
-    typeUpper === 'CNOT' ||
-    typeUpper === 'CX' ||
-    typeUpper === 'CCNOT' ||
-    typeUpper === 'TOFFOLI' ||
-    typeUpper === 'X' ||
-    typeUpper === 'NOT'
-
-  const isSwapCross = role === 'SWAP' || typeUpper === 'SWAP'
 
   return (
     <div
@@ -174,85 +249,21 @@ export default function CircuitCell({
       {gate && (
         <div
           ref={dragPlacedRef}
-          className={`z-20 relative flex items-center justify-center cursor-grab active:cursor-grabbing ${
+          className={`z-20 relative flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-105 ${
             isDraggingPlaced ? 'opacity-20 scale-90' : ''
           }`}
           title="Click to select, drag to move, right-click to delete"
         >
-          {/* 1. Control Dot (Solid Blue Circle) */}
-          {isControlDot ? (
-            <div
-              className={`w-4 h-4 rounded-full bg-[#29b6f6] shadow-md flex items-center justify-center transition-transform hover:scale-110 ${
-                isSelected ? 'ring-2 ring-white scale-110' : ''
-              }`}
-            />
-          ) : isTargetPlus ? (
-            /* 2. Target Squircle Badge ⊕ (Rounded Blue Squircle with White Border and Black Plus Sign) */
-            <div
-              className={`w-8 h-8 rounded-xl bg-[#29b6f6] border-2 border-white flex items-center justify-center shadow-lg transition-transform hover:scale-105 ${
-                isSelected ? 'ring-2 ring-white scale-105' : ''
-              }`}
-            >
-              <svg className="w-5 h-5 text-[#11111a]" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4" fill="none" strokeLinecap="square">
-                <line x1="12" y1="4" x2="12" y2="20" />
-                <line x1="4" y1="12" x2="20" y2="12" />
-              </svg>
-            </div>
-          ) : isSwapCross ? (
-            /* 3. SWAP Cross ✕ (Strictly 2 qubits) */
-            <div
-              className={`w-7 h-7 flex items-center justify-center text-[#29b6f6] font-bold transition-transform hover:scale-110 ${
-                isSelected ? 'scale-110' : ''
-              }`}
-            >
-              <svg className="w-6 h-6 text-[#29b6f6]" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" fill="none">
-                <line x1="6" y1="6" x2="18" y2="18" />
-                <line x1="18" y1="6" x2="6" y2="18" />
-              </svg>
-            </div>
-          ) : typeUpper === 'BARRIER' ? (
-            /* 4. Barrier Dashed Bar */
-            <div className="w-3 h-11 bg-[#78909c]/40 border-x border-dashed border-[#78909c] flex items-center justify-center" />
-          ) : gate.type === 'Measure' ? (
-            /* 5. Measurement Meter Tile */
-            <div
-              className={`w-[36px] h-[36px] aspect-square rounded-xl bg-[#78909c] flex flex-col items-center justify-center text-white shadow-md transition-all ${
-                isSelected ? 'border-2 border-white ring-2 ring-[#29b6f6]' : 'border border-transparent'
-              }`}
-            >
-              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 15a9 9 0 0118 0" />
-                <path d="M12 15l4-7" />
-              </svg>
-            </div>
-          ) : gate.type === 'Reset' ? (
-            /* 6. Reset State Badge |0⟩ */
-            <div
-              className={`w-[36px] h-[36px] aspect-square rounded-xl bg-[#78909c] flex flex-col items-center justify-center text-white font-mono font-bold text-xs shadow-md transition-all ${
-                isSelected ? 'border-2 border-white ring-2 ring-[#29b6f6]' : 'border border-transparent'
-              }`}
-            >
-              |0⟩
-            </div>
-          ) : (
-            /* 7. Standard Single-Qubit Gate Tile (H, Y, Z, S, T, RX, RY, RZ, P) */
-            <div
-              className={`w-[36px] h-[36px] aspect-square rounded-xl ${
-                GATE_COLOR_MAP[gate.type] || 'bg-[#29b6f6] text-white'
-              } flex flex-col items-center justify-center shadow-md transition-all cursor-pointer select-none ${
-                isSelected ? 'border-2 border-white ring-2 ring-[#29b6f6]' : 'border border-transparent'
-              }`}
-            >
-              <span className="font-bold text-xs font-mono leading-none">{gate.symbol || gate.type}</span>
-              {['RX', 'RY', 'RZ', 'P'].includes(gate.type) && (
-                <span className="text-[8px] font-mono mt-0.5 opacity-90 leading-none">
-                  {formatAngleDisplay(gate.theta)}
-                </span>
-              )}
-            </div>
-          )}
+          <GateVisual gate={gate} isSelected={isSelected} />
         </div>
       )}
     </div>
   )
+}
+
+export default function CircuitCell(props) {
+  if (props.readOnly) {
+    return <ReadOnlyCircuitCell {...props} />
+  }
+  return <InteractiveCircuitCell {...props} />
 }

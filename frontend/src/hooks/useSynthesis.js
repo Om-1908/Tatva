@@ -1,17 +1,10 @@
 import { useRef, useCallback } from 'react'
 import useSynthesisStore from '../store/useSynthesisStore'
-import useCircuitStore from '../store/useCircuitStore'
 import { SYNTHESIS_SEQUENCES, sequenceToGates } from '../utils/quantumStates'
+import { synthesizeOptimalCircuit } from '../components/composer/core/store/useCircuitStore'
 
 const useSynthesis = () => {
   const intervalRef = useRef(null)
-
-  const {
-    startSynthesis,
-    addLog,
-    updateMetrics,
-    completeSynthesis,
-  } = useSynthesisStore.getState()
 
   const cleanup = useCallback(() => {
     if (intervalRef.current) {
@@ -23,20 +16,32 @@ const useSynthesis = () => {
   const runSynthesis = useCallback((selectedState, numQubits) => {
     cleanup()
 
-    const sequence = SYNTHESIS_SEQUENCES[selectedState]
-    if (!sequence) return
+    const normalizedState = String(selectedState || '').trim().replace(/[\u2212]/g, '-')
+    let sequence = SYNTHESIS_SEQUENCES[selectedState] || SYNTHESIS_SEQUENCES[normalizedState]
 
-    startSynthesis()
+    // Fallback if preset sequence is not directly defined in quantumStates
+    if (!sequence || sequence.length === 0) {
+      const optimal = synthesizeOptimalCircuit(normalizedState, numQubits)
+      if (optimal && optimal.length > 0) {
+        sequence = optimal.map((g, idx) => ({
+          gate: g.gate || g.type || 'X',
+          qubit: g.type === 'CNOT' && g.targetQubit !== undefined ? `q${g.controlQubit || 0}→q${g.targetQubit}` : `q${g.qubit || 0}`,
+          fidelity: Math.min(0.9999, 0.4 + ((idx + 1) / optimal.length) * 0.6),
+        }))
+      } else {
+        sequence = []
+      }
+    }
 
-    // If empty sequence (already ground state), complete instantly
+    useSynthesisStore.getState().startSynthesis(numQubits)
+
+    // If empty sequence (ground state), complete instantly
     if (sequence.length === 0) {
-      const { completeSynthesis: complete, addLog: log, updateMetrics: update } = useSynthesisStore.getState()
-      log({ step: 1, gate: 'I', qubit: 'q0', fidelity: 1.0 })
-      update(1.0, 1, 0)
-      complete(1.0, [])
-
+      const store = useSynthesisStore.getState()
+      store.addLog({ step: 1, gate: 'I', qubit: 'q0', fidelity: 1.0 })
+      store.updateMetrics(1.0, 1400, 0)
       const circuitGates = sequenceToGates(sequence)
-      useCircuitStore.getState().setSynthesisResult(circuitGates, 1.0, 0)
+      store.completeSynthesis(1.0, sequence, circuitGates, numQubits)
       return
     }
 
@@ -51,23 +56,26 @@ const useSynthesis = () => {
         intervalRef.current = null
 
         const finalStep = sequence[sequence.length - 1]
-        store.completeSynthesis(finalStep.fidelity, sequence)
-
+        const finalFidelity = finalStep?.fidelity ?? 1.0
         const circuitGates = sequenceToGates(sequence)
-        useCircuitStore.getState().setSynthesisResult(circuitGates, finalStep.fidelity, sequence.length)
+        store.completeSynthesis(finalFidelity, sequence, circuitGates, numQubits)
         return
       }
 
       const step = sequence[i]
-      store.addLog({
-        step: i + 1,
-        gate: step.gate,
-        qubit: step.qubit,
-        fidelity: step.fidelity,
-      })
-      store.updateMetrics(step.fidelity, baseEpisode + (i * 50), i + 1)
+      if (step) {
+        const currentSlice = sequence.slice(0, i + 1)
+        const currentGates = sequenceToGates(currentSlice)
+        store.addLog({
+          step: i + 1,
+          gate: step.gate || 'I',
+          qubit: step.qubit || 'q0',
+          fidelity: step.fidelity ?? 1.0,
+        }, currentGates)
+        store.updateMetrics(step.fidelity ?? 1.0, baseEpisode + (i * 50), i + 1)
+      }
       i++
-    }, 700)
+    }, 600)
   }, [cleanup])
 
   return { runSynthesis, cleanup }

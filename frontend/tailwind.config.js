@@ -70,10 +70,13 @@ export default {
         'line': 'rgb(var(--line) / <alpha-value>)',
       },
       borderRadius: {
-        DEFAULT: "0.125rem",
-        lg: "0.25rem",
-        xl: "0.5rem",
-        full: "0.75rem",
+        'xs': 'var(--radius-xs)',
+        'sm': 'var(--radius-sm)',
+        'md': 'var(--radius-md)',
+        'lg': 'var(--radius-lg)',
+        'xl': 'var(--radius-lg)',
+        '2xl': '24px',
+        'full': 'var(--radius-full)',
       },
       spacing: {
         gutter: "24px",

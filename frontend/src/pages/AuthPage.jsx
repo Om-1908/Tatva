@@ -52,7 +52,11 @@ const AuthPage = () => {
             />
           </div>
 
-          <img src="/tatva_bg.png" alt="TATVA Logo" className="h-14 md:h-16 w-auto object-contain mb-3" />
+          <img
+            src="/tatva_bg.png"
+            alt="TATVA Logo"
+            className="h-14 md:h-16 w-auto object-contain mb-3 drop-shadow-[0_0_20px_rgba(56,189,248,0.3)]"
+          />
           <p className="font-body-lg text-body-lg text-on-surface-variant font-medium tracking-wide">
             AI-Driven Quantum Circuit Synthesis
           </p>

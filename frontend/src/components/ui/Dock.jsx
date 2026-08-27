@@ -1,6 +1,5 @@
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion'
 import { Children, cloneElement, useEffect, useMemo, useRef, useState } from 'react'
-
 import './Dock.css'
 
 function DockItem({ children, className = '', onClick, mouseX, spring, distance, magnification, baseItemSize, label }) {
@@ -65,9 +64,9 @@ function DockLabel({ children, className = '', ...rest }) {
       {isVisible && (
         <motion.div
           initial={{ opacity: 0, y: 0 }}
-          animate={{ opacity: 1, y: 4 }}
+          animate={{ opacity: 1, y: -10 }}
           exit={{ opacity: 0, y: 0 }}
-          transition={{ duration: 0.18 }}
+          transition={{ duration: 0.2 }}
           className={`dock-label ${className}`}
           role="tooltip"
           style={{ x: '-50%' }}
@@ -87,11 +86,11 @@ export default function Dock({
   items = [],
   className = '',
   spring = { mass: 0.1, stiffness: 150, damping: 12 },
-  magnification = 68,
-  distance = 160,
-  panelHeight = 54,
-  dockHeight = 130,
-  baseItemSize = 44
+  magnification = 58,
+  distance = 150,
+  panelHeight = 44,
+  dockHeight = 120,
+  baseItemSize = 36
 }) {
   const mouseX = useMotionValue(Infinity)
   const isHovered = useMotionValue(0)

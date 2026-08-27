@@ -390,62 +390,14 @@ export const useCircuitStore = create((set, get) => ({
   targetStatevector: [{ real: 1, imag: 0 }, { real: 0, imag: 0 }],
   setTargetState: (label, vector, numQubits) => {
     const nQ = Number(numQubits) || 4
-    const optimalGates = synthesizeOptimalCircuit(label, nQ)
 
-    // Build probabilities & counts from target statevector
-    const totalStates = 1 << nQ
-    const probabilities = {}
-    const counts = {}
+    set((state) => ({
+      qubits: nQ,
+      targetStateLabel: label,
+      targetStatevector: vector,
+      selectedState: label,
+    }))
 
-    if (Array.isArray(vector) && vector.length === totalStates) {
-      vector.forEach((amp, idx) => {
-        const bitstring = idx.toString(2).padStart(nQ, '0')
-        const prob = (amp.real || 0) ** 2 + (amp.imag || 0) ** 2
-        probabilities[bitstring] = prob
-        counts[bitstring] = Math.round(prob * 1024)
-      })
-    } else {
-      const groundBit = '0'.repeat(nQ)
-      probabilities[groundBit] = 1.0
-      counts[groundBit] = 1024
-    }
-
-    const simResult = {
-      statevector: vector,
-      probabilities,
-      counts,
-    }
-
-    set((state) => {
-      const newCircuit = createEmptyCircuit(nQ, state.steps)
-      optimalGates.forEach((g) => {
-        if (g.qubit < nQ && g.step < state.steps) {
-          newCircuit[g.qubit][g.step] = {
-            type: g.gate || g.type,
-            ...(g.theta !== undefined && { theta: g.theta }),
-            ...(g.targetQubit !== undefined && g.targetQubit !== null && { controlQubit: g.qubit }),
-          }
-          if (g.type === 'CNOT' && g.targetQubit !== undefined && g.targetQubit !== null) {
-            newCircuit[g.targetQubit][g.step] = {
-              type: 'CNOT_TARGET',
-              controlQubit: g.qubit,
-            }
-          }
-        }
-      })
-
-      return {
-        qubits: nQ,
-        targetStateLabel: label,
-        targetStatevector: vector,
-        selectedState: label,
-        circuit: newCircuit,
-        gates: optimalGates,
-        simulationResult: simResult,
-        history: [{ circuit: newCircuit, gates: optimalGates }],
-        historyIndex: 0,
-      }
-    })
 
     try {
       fetch(`${API_BASE_URL}/api/set-target`, {
@@ -456,26 +408,10 @@ export const useCircuitStore = create((set, get) => ({
     } catch (e) { }
   },
   setSynthesisResult: (gates, fidelity, gateCount) => {
-    set((state) => {
-      const newCircuit = createEmptyCircuit(state.qubits, state.steps)
-      if (Array.isArray(gates)) {
-        gates.forEach((g) => {
-          if (g.qubit < state.qubits && g.step < state.steps) {
-            newCircuit[g.qubit][g.step] = {
-              type: g.gate || g.type,
-              ...(g.targetQubit !== null && g.targetQubit !== undefined && { controlQubit: g.qubit })
-            }
-          }
-        })
-      }
-      return {
-        circuit: newCircuit,
-        gates: gates || [],
-        history: [{ circuit: newCircuit, gates: gates || [] }],
-        historyIndex: 0,
-      }
-    })
+    // Synthesis results are isolated in useSynthesisStore for the read-only section.
+    // The editable validation composer is never auto-populated.
   },
+
 
   // Editor chrome
   circuitName: 'unnamed-Circuit',

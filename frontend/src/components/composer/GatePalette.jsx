@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { useDrag } from 'react-dnd'
-import DynamicSearch from '../ui/DynamicSearch.jsx'
 
 const GATE_CATEGORIES = [
   {
@@ -71,14 +70,17 @@ function GateItemRow({ gate }) {
   return (
     <div
       ref={drag}
-      className={`flex items-center gap-3 py-1 px-2 rounded-xl hover:bg-[#262c33] cursor-grab active:cursor-grabbing transition-colors select-none ${isDragging ? 'opacity-40' : ''
-        }`}
+      className={`flex items-center gap-3 py-1.5 px-2 rounded-md hover:bg-white/5 cursor-grab active:cursor-grabbing transition-colors select-none ${
+        isDragging ? 'opacity-40' : ''
+      }`}
       title={`Drag ${gate.name} onto circuit canvas`}
     >
-      <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-mono font-bold text-sm shrink-0 shadow-sm ${gate.color}`}>
+      <div
+        className={`w-8 h-8 apple-squircle-gate font-mono font-bold text-xs shrink-0 ${gate.color}`}
+      >
         {gate.symbol}
       </div>
-      <span className="text-sm text-[#e1e4e8] font-medium truncate">
+      <span className="text-xs text-[#e1e4e8] font-medium truncate">
         {gate.name}
       </span>
     </div>
@@ -95,8 +97,9 @@ function GateItemTile({ gate }) {
   return (
     <div
       ref={drag}
-      className={`w-10 h-10 rounded-xl flex items-center justify-center font-mono font-bold text-sm cursor-grab active:cursor-grabbing hover:scale-105 transition-transform select-none shadow-sm ${gate.color} ${isDragging ? 'opacity-40' : ''
-        }`}
+      className={`w-10 h-10 apple-squircle-gate font-mono font-bold text-sm cursor-grab active:cursor-grabbing ${
+        gate.color
+      } ${isDragging ? 'opacity-40' : ''}`}
       title={`${gate.name} gate`}
     >
       {gate.symbol}
@@ -137,21 +140,25 @@ export default function GatePalette() {
     <aside className="w-[240px] bg-[#16191d] border-r border-[#262c33] h-full overflow-y-auto flex flex-col p-3 shrink-0 select-none text-[#e1e4e8]">
       {/* Header Bar */}
       <div className="flex items-center justify-between pb-3 border-b border-[#262c33] mb-3">
-        <h3 className="text-base font-bold text-white">Operations</h3>
-        <div className="flex items-center gap-1.5 text-xs text-[#9da5b4]">
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+          Operations
+        </h3>
+        <div className="flex items-center gap-1.5 text-xs">
           <button
             onClick={() => setShowSearch(!showSearch)}
-            className="p-1 rounded hover:bg-[#262c33] hover:text-white transition-colors"
+            className="apple-btn-icon"
             title="Search Operations"
           >
-            🔍
+            <span className="material-symbols-outlined text-[16px]">search</span>
           </button>
           <button
             onClick={() => setViewMode(viewMode === 'list' ? 'grid' : 'list')}
-            className="p-1 rounded hover:bg-[#262c33] hover:text-white transition-colors"
+            className="apple-btn-icon"
             title={viewMode === 'list' ? 'Switch to Icon Grid View' : 'Switch to Category List View'}
           >
-            {viewMode === 'list' ? '🌁' : '📑'}
+            <span className="material-symbols-outlined text-[16px]">
+              {viewMode === 'list' ? 'grid_view' : 'format_list_bulleted'}
+            </span>
           </button>
         </div>
       </div>
@@ -164,7 +171,7 @@ export default function GatePalette() {
             placeholder="Filter operations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#21262d] border border-[#30363d] text-xs text-white px-2.5 py-1.5 rounded outline-none font-mono"
+            className="w-full bg-[#1e1b2e] border border-white/10 text-xs text-white px-3 py-1.5 rounded-md outline-none font-mono focus:border-indigo-500/50"
             autoFocus
           />
         </div>
@@ -179,21 +186,23 @@ export default function GatePalette() {
         </div>
       ) : (
         /* LIST / ACCORDION VIEW MODE */
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
           {filteredCategories.map((group) => {
             const isClosed = collapsedCats[group.category]
             return (
               <div key={group.category} className="flex flex-col">
                 <button
                   onClick={() => toggleCat(group.category)}
-                  className="flex items-center justify-between text-sm font-semibold text-white py-1 hover:text-[#29b6f6] transition-colors border-b border-[#262c33]/40 mb-1"
+                  className="flex items-center justify-between text-xs font-semibold text-gray-300 py-1.5 px-1 hover:text-white transition-colors border-b border-[#262c33]/40 mb-1 cursor-pointer"
                 >
-                  <span>{group.category}</span>
-                  <span className="text-[10px] text-[#9da5b4]">{isClosed ? '∨' : '∧'}</span>
+                  <span className="uppercase tracking-wider">{group.category}</span>
+                  <span className="material-symbols-outlined text-[14px] text-gray-400">
+                    {isClosed ? 'expand_more' : 'expand_less'}
+                  </span>
                 </button>
 
                 {!isClosed && (
-                  <div className="flex flex-col gap-0.5 pl-1">
+                  <div className="flex flex-col gap-0.5 pl-0.5">
                     {group.gates.map((gate, idx) => (
                       <GateItemRow key={`${gate.type}-${idx}`} gate={gate} />
                     ))}

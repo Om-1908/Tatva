@@ -2,12 +2,18 @@ import React, { useEffect, useState } from 'react'
 import { useCircuitStore } from './core/store/useCircuitStore'
 import CircuitCell, { getCellGateInfo } from './CircuitCell'
 
-export default function CircuitCanvas({ selectedGate, setSelectedGate }) {
+export default function CircuitCanvas({
+  selectedGate,
+  setSelectedGate,
+  readOnly = false,
+  customCircuit = null,
+  customQubits = null,
+  customSteps = null,
+}) {
   const {
-    qubits,
-    steps,
-    circuit,
-    setQubits,
+    qubits: storeQubits,
+    steps: storeSteps,
+    circuit: storeCircuit,
     removeGate,
     resetCircuit,
     undo,
@@ -16,12 +22,17 @@ export default function CircuitCanvas({ selectedGate, setSelectedGate }) {
     history,
   } = useCircuitStore()
 
+  const qubits = customQubits ?? storeQubits
+  const steps = customSteps ?? (customCircuit ? (customCircuit[0]?.length || 10) : storeSteps)
+  const circuit = customCircuit ?? storeCircuit
+
   const [activeCell, setActiveCell] = useState(null)
 
   const minCols = 10
   const totalCols = Math.max(minCols, steps)
 
   const handleSelectGate = (cellInfo) => {
+    if (readOnly) return
     setActiveCell(cellInfo)
     if (setSelectedGate) {
       setSelectedGate(cellInfo)
@@ -29,6 +40,7 @@ export default function CircuitCanvas({ selectedGate, setSelectedGate }) {
   }
 
   const handleRemoveGate = (qubit, step) => {
+    if (readOnly) return
     removeGate(qubit, step)
     if (activeCell && activeCell.qubit === qubit && activeCell.step === step) {
       setActiveCell(null)
@@ -36,8 +48,9 @@ export default function CircuitCanvas({ selectedGate, setSelectedGate }) {
     }
   }
 
-  // Keyboard Delete key support
+  // Keyboard Delete key support (only active in editable mode)
   useEffect(() => {
+    if (readOnly) return
     const handleKeyDown = (e) => {
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (activeCell) {
@@ -49,41 +62,46 @@ export default function CircuitCanvas({ selectedGate, setSelectedGate }) {
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [activeCell, removeGate, setSelectedGate])
+  }, [activeCell, removeGate, setSelectedGate, readOnly])
 
   return (
     <div
-      className="flex-1 bg-[#1a1a1a] h-full overflow-x-auto overflow-y-auto flex flex-col p-6 relative select-none"
+      className={`flex-1 bg-[#1a1a1a] h-full overflow-x-auto overflow-y-auto flex flex-col p-6 relative select-none ${
+        readOnly ? 'rounded-2xl border border-white/10' : ''
+      }`}
       onClick={() => {
+        if (readOnly) return
         setActiveCell(null)
         if (setSelectedGate) setSelectedGate(null)
       }}
     >
-      {/* Top Controls Strip (Undo, Redo, Reset) */}
-      <div className="flex items-center justify-between border-b border-[#393939] pb-3 mb-6 shrink-0">
-        <div className="flex items-center gap-3 text-sm font-semibold">
-          <button
-            onClick={undo}
-            disabled={historyIndex <= 0}
-            className="px-3.5 py-1.5 bg-[#262626] hover:bg-[#393939] disabled:opacity-40 text-white rounded-xl border border-[#393939] transition-colors"
-          >
-            ↩ Undo
-          </button>
-          <button
-            onClick={redo}
-            disabled={historyIndex >= history.length - 1}
-            className="px-3.5 py-1.5 bg-[#262626] hover:bg-[#393939] disabled:opacity-40 text-white rounded-xl border border-[#393939] transition-colors"
-          >
-            ↪ Redo
-          </button>
-          <button
-            onClick={resetCircuit}
-            className="px-3.5 py-1.5 bg-[#262626] hover:bg-[#393939] text-white rounded-xl border border-[#393939] transition-colors"
-          >
-            ⨂ Clear Canvas
-          </button>
+      {/* Top Controls Strip (Undo, Redo, Reset) — only rendered in interactive mode */}
+      {!readOnly && (
+        <div className="flex items-center justify-between border-b border-[#393939] pb-3 mb-6 shrink-0">
+          <div className="flex items-center gap-3 text-sm font-semibold">
+            <button
+              onClick={undo}
+              disabled={historyIndex <= 0}
+              className="apple-btn-base apple-btn-secondary px-3.5 py-1.5 text-xs font-semibold"
+            >
+              ↩ Undo
+            </button>
+            <button
+              onClick={redo}
+              disabled={historyIndex >= history.length - 1}
+              className="apple-btn-base apple-btn-secondary px-3.5 py-1.5 text-xs font-semibold"
+            >
+              ↪ Redo
+            </button>
+            <button
+              onClick={resetCircuit}
+              className="apple-btn-base apple-btn-secondary px-3.5 py-1.5 text-xs font-semibold"
+            >
+              ⨂ Clear Canvas
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Grid Area */}
       <div className="inline-flex flex-col min-w-max relative">
@@ -241,7 +259,7 @@ export default function CircuitCanvas({ selectedGate, setSelectedGate }) {
             <div className="flex items-center relative">
               {Array.from({ length: totalCols }, (_, colIdx) => {
                 const isSelected =
-                  activeCell?.qubit === qIdx && activeCell?.step === colIdx
+                  !readOnly && activeCell?.qubit === qIdx && activeCell?.step === colIdx
 
                 return (
                   <CircuitCell
@@ -252,6 +270,8 @@ export default function CircuitCanvas({ selectedGate, setSelectedGate }) {
                     onSelectGate={handleSelectGate}
                     onRemoveGate={handleRemoveGate}
                     numQubits={qubits}
+                    readOnly={readOnly}
+                    customCircuit={circuit}
                   />
                 )
               })}

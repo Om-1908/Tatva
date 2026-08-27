@@ -80,8 +80,12 @@ export default function TopNavbar({ onRunClick }) {
       {/* Left Branding, Qubit Selector & Project Name */}
       <div className="flex items-center gap-3">
         {/* TATVA Logo */}
-        <div className="flex items-center gap-2">
-          <img src="/tatva_bg.png" alt="TATVA Logo" className="h-6 w-auto object-contain" />
+        <div className="flex items-center gap-2 shrink-0">
+          <img
+            src="/tatva_bg.png"
+            alt="TATVA Logo"
+            className="h-6 max-h-6 w-auto object-contain shrink-0 drop-shadow-[0_0_8px_rgba(56,189,248,0.25)] hover:drop-shadow-[0_0_14px_rgba(56,189,248,0.5)] transition-all duration-300"
+          />
           <span className="font-bold text-xs tracking-wider uppercase text-primary font-mono hidden sm:inline">Composer</span>
         </div>
 
@@ -125,7 +129,7 @@ export default function TopNavbar({ onRunClick }) {
         {/* Save to My Circuits Button */}
         <button
           onClick={handleSaveToMyCircuits}
-          className="bg-[#0062ff] hover:bg-[#0050d4] text-white text-xs font-mono font-semibold px-3 py-1.5 rounded-xl transition-all border border-[#0062ff]/50 flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer"
+          className="apple-btn-base apple-btn-primary bg-[#0062ff] text-white text-xs font-mono font-semibold px-3.5 py-1.5 gap-1.5 shadow-md"
           title="Save this circuit to My Circuits page and MongoDB Atlas"
         >
           <span>{saveStatus ? '✅' : '💾'}</span>
@@ -135,7 +139,7 @@ export default function TopNavbar({ onRunClick }) {
         {/* Load Circuit Button */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="bg-[#262626] hover:bg-[#393939] text-white text-xs font-mono font-semibold px-3 py-1.5 rounded-xl transition-all border border-[#525252] flex items-center shadow cursor-pointer"
+          className="apple-btn-base apple-btn-secondary text-white text-xs font-mono font-semibold px-3.5 py-1.5"
           title="Load circuit from a downloaded JSON file"
         >
           <span>Load</span>
@@ -144,7 +148,7 @@ export default function TopNavbar({ onRunClick }) {
         {/* Download Circuit JSON Button */}
         <button
           onClick={handleExportJSON}
-          className="bg-[#262626] hover:bg-[#393939] text-white text-xs font-mono font-semibold px-3 py-1.5 rounded-xl transition-all border border-[#525252] flex items-center shadow cursor-pointer"
+          className="apple-btn-base apple-btn-secondary text-white text-xs font-mono font-semibold px-3.5 py-1.5"
           title="Download synthesized circuit as JSON file"
         >
           <span>Download</span>
@@ -154,7 +158,7 @@ export default function TopNavbar({ onRunClick }) {
         <button
           onClick={handleRun}
           disabled={isSimulating}
-          className="bg-primary-container hover:shadow-[0_0_15px_rgba(79,70,229,0.5)] active:scale-95 disabled:opacity-50 text-white text-xs font-semibold px-4 py-1.5 rounded-xl transition-all flex items-center gap-2 shadow-md border-t border-white/20 ml-1"
+          className="apple-btn-base apple-btn-primary bg-primary-container text-white text-xs font-semibold px-4 py-1.5 gap-2 ml-1"
         >
           {isSimulating ? (
             <>
@@ -162,12 +166,12 @@ export default function TopNavbar({ onRunClick }) {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              <span>Simulating...</span>
+              <span className="leading-none">Simulating...</span>
             </>
           ) : (
             <>
-              <span className="text-[10px]">▶</span>
-              <span>Run</span>
+              <span className="text-[10px] leading-none">▶</span>
+              <span className="leading-none">Run</span>
             </>
           )}
         </button>
