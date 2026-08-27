@@ -31,9 +31,9 @@ CORS(app, resources={
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@app.route('/', methods=['GET'])
-@app.route('/health', methods=['GET'])
-def health_check():
+@app.route('/', methods=['GET'], endpoint='root_ping')
+@app.route('/health', methods=['GET'], endpoint='health_ping')
+def ping_health():
     return jsonify({
         "status": "healthy",
         "service": "TATVA Quantum Synthesis API",
