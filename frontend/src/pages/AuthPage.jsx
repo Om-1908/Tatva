@@ -63,7 +63,7 @@ const AuthPage = () => {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-margin-mobile md:p-margin-desktop bg-[#07080e] border-l border-white/5">
         <div className="w-full max-w-[440px]">
           {/* Auth Card */}
-          <div className="bg-[#11111A] border-t-2 border-t-primary-container border-x border-b border-x-[#1A1A24] border-b-[#1A1A24] rounded-xl shadow-[0_0_50px_rgba(79,70,229,0.1)] overflow-hidden">
+          <div className="bg-[#11111A] border-t-2 border-t-primary-container border-x border-b border-x-[#1A1A24] border-b-[#1A1A24] rounded-3xl shadow-[0_0_50px_rgba(79,70,229,0.1)] overflow-hidden">
             {/* Tab Switcher */}
             <div className="flex border-b border-outline-variant/30 bg-[#0d0d1a]">
               <button

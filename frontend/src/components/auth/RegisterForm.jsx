@@ -151,7 +151,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
       </div>
 
       {errors.general && (
-        <div className="mb-6 p-3 bg-red-900/30 border border-red-500/50 rounded text-red-300 text-xs font-mono">
+        <div className="mb-6 p-3.5 bg-red-900/30 border border-red-500/50 rounded-2xl text-red-300 text-xs font-mono">
           ⚠️ {errors.general}
         </div>
       )}
@@ -160,7 +160,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
       <button
         type="button"
         onClick={handleGoogleOAuth}
-        className="w-full bg-[#181a24] hover:bg-[#222533] border border-[#2d3247] text-white py-3 px-4 rounded font-label-sm text-sm font-semibold flex items-center justify-center gap-3 transition-all mb-6 shadow-md cursor-pointer"
+        className="w-full bg-[#181a24] hover:bg-[#222533] border border-[#2d3247] text-white py-3 px-4 rounded-xl font-label-sm text-sm font-semibold flex items-center justify-center gap-3 transition-all mb-6 shadow-md cursor-pointer"
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
@@ -187,7 +187,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
             type="text"
             value={name}
             onChange={(e) => { setName(e.target.value); clearError('name') }}
-            className="w-full bg-[#07070A] border border-[#1A1A24] rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-0 input-glow transition-all font-code text-code"
+            className="w-full bg-[#07070A] border border-[#1A1A24] rounded-xl px-4 py-3 text-on-surface focus:outline-none focus:ring-0 input-glow transition-all font-code text-code"
             placeholder="Dr. Jane Doe"
           />
           {errors.name && <p className="text-error text-xs mt-1">{errors.name}</p>}
@@ -201,7 +201,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
             type="email"
             value={email}
             onChange={(e) => { setEmail(e.target.value); clearError('email') }}
-            className="w-full bg-[#07070A] border border-[#1A1A24] rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-0 input-glow transition-all font-code text-code"
+            className="w-full bg-[#07070A] border border-[#1A1A24] rounded-xl px-4 py-3 text-on-surface focus:outline-none focus:ring-0 input-glow transition-all font-code text-code"
             placeholder="user@tatva.quantum"
           />
           {errors.email && <p className="text-error text-xs mt-1">{errors.email}</p>}
@@ -215,7 +215,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
             type="password"
             value={password}
             onChange={(e) => { setPassword(e.target.value); clearError('password') }}
-            className="w-full bg-[#07070A] border border-[#1A1A24] rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-0 input-glow transition-all font-code text-code"
+            className="w-full bg-[#07070A] border border-[#1A1A24] rounded-xl px-4 py-3 text-on-surface focus:outline-none focus:ring-0 input-glow transition-all font-code text-code"
             placeholder="At least 6 characters"
           />
           {errors.password && <p className="text-error text-xs mt-1">{errors.password}</p>}
@@ -229,7 +229,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
             type="password"
             value={confirmPassword}
             onChange={(e) => { setConfirmPassword(e.target.value); clearError('confirmPassword') }}
-            className="w-full bg-[#07070A] border border-[#1A1A24] rounded px-4 py-3 text-on-surface focus:outline-none focus:ring-0 input-glow transition-all font-code text-code"
+            className="w-full bg-[#07070A] border border-[#1A1A24] rounded-xl px-4 py-3 text-on-surface focus:outline-none focus:ring-0 input-glow transition-all font-code text-code"
             placeholder="Repeat password"
           />
           {errors.confirmPassword && <p className="text-error text-xs mt-1">{errors.confirmPassword}</p>}
@@ -237,7 +237,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-primary-container text-white py-3 px-4 rounded font-label-sm text-label-sm uppercase tracking-widest hover:shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-shadow flex items-center justify-center gap-2 border-t border-white/20 disabled:opacity-60 cursor-pointer"
+          className="w-full bg-primary-container text-white py-3 px-4 rounded-xl font-label-sm text-label-sm uppercase tracking-widest hover:shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-shadow flex items-center justify-center gap-2 border-t border-white/20 disabled:opacity-60 cursor-pointer"
         >
           {loading ? (
             <>

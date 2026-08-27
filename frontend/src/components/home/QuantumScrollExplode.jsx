@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { motion, useScroll, useTransform, useSpring, useMotionValueEvent } from 'framer-motion'
 import VariableProximity from '../ui/VariableProximity'
 
-const TOTAL_FRAMES = 50
+const TOTAL_FRAMES = 200
 
 export default function QuantumScrollExplode() {
   const containerRef = useRef(null)
@@ -23,17 +23,18 @@ export default function QuantumScrollExplode() {
     return () => mediaQuery.removeEventListener('change', handleChange)
   }, [])
 
-  // Preload all 50 frames monotonically
+  // Preload and asynchronously pre-decode all 50 frames off main thread
   useEffect(() => {
     let count = 0
-    const loadedImages = []
+    const loadedImages = new Array(TOTAL_FRAMES)
 
     for (let i = 1; i <= TOTAL_FRAMES; i++) {
       const img = new Image()
       const frameNum = String(i).padStart(3, '0')
       img.src = `/frames/ezgif-frame-${frameNum}.jpg`
+      loadedImages[i - 1] = img
 
-      const handleLoad = () => {
+      const onDone = () => {
         count++
         setLoadedCount(count)
         if (count === TOTAL_FRAMES) {
@@ -43,9 +44,14 @@ export default function QuantumScrollExplode() {
         }
       }
 
-      img.onload = handleLoad
-      img.onerror = handleLoad
-      loadedImages.push(img)
+      if (img.complete) {
+        img.decode ? img.decode().then(onDone).catch(onDone) : onDone()
+      } else {
+        img.onload = () => {
+          img.decode ? img.decode().then(onDone).catch(onDone) : onDone()
+        }
+        img.onerror = onDone
+      }
     }
   }, [])
 
