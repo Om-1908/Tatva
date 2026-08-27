@@ -1,0 +1,315 @@
+/* ========================================================================== */
+/* THEME TOKENS                                                                */
+/* ========================================================================== */
+.quantum-workspace {
+  --paper: 250 248 244;   /* warm cream page background */
+  --surface: 255 255 255; /* cards */
+  --panel: 252 251 248;   /* insets */
+  --ink: 26 26 26;        /* primary text */
+  --muted: 107 105 99;    /* secondary text */
+  --faint: 150 147 139;   /* tertiary text */
+  --line: 226 223 216;    /* hairlines / borders */
+  --accent: 79 70 229;    /* bloch arrow, bars, focus */
+  --accent2: 124 92 233;  /* hero gradient partner */
+  --grid-wire: 203 200 192;
+  --grid-classical: 200 74 74; /* red classical register wires */
+  color-scheme: light;
+}
+
+.quantum-workspace.dark, .dark .quantum-workspace {
+  --paper: 18 18 19;
+  --surface: 30 30 33;
+  --panel: 24 24 27;
+  --ink: 240 236 228;
+  --muted: 168 162 154;
+  --faint: 118 114 108;
+  --line: 52 51 47;
+  --accent: 139 133 240;
+  --accent2: 167 108 255;
+  --grid-wire: 74 73 68;
+  --grid-classical: 214 96 96;
+  color-scheme: dark;
+}
+
+/* ========================================================================== */
+/* EDITORIAL UTILITIES                                                         */
+/* ========================================================================== */
+/* Component Utilities */
+  .display-serif {
+    font-family: 'Playfair Display', Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+  }
+
+  .panel {
+    background: rgb(var(--surface));
+    border: 1px solid rgb(var(--line));
+    border-radius: 14px;
+  }
+
+  .panel-flush {
+    background: rgb(var(--surface));
+    border: 1px solid rgb(var(--line));
+  }
+
+  .hairline {
+    border-color: rgb(var(--line));
+  }
+
+  .quantum-workspace .nav-link {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+    padding-bottom: 4px;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+    cursor: pointer;
+  }
+  .quantum-workspace .nav-link:hover { color: rgb(var(--ink)); }
+  .quantum-workspace .nav-link.active {
+    color: rgb(var(--ink));
+    border-bottom-color: rgb(var(--ink));
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(var(--ink));
+    padding: 7px 12px;
+    border: 1px solid rgb(var(--line));
+    border-radius: 8px;
+    background: rgb(var(--surface));
+    transition: border-color 0.15s ease, background 0.15s ease;
+    cursor: pointer;
+  }
+  .btn-ghost:hover { border-color: rgb(var(--ink) / 0.4); }
+  .btn-ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-solid {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: rgb(var(--paper));
+    background: rgb(var(--ink));
+    padding: 9px 16px;
+    border-radius: 8px;
+    transition: opacity 0.15s ease;
+    cursor: pointer;
+  }
+  .btn-solid:hover { opacity: 0.85; }
+  .btn-solid:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Accent "Run" pill in the top bar. */
+  .run-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    background: rgb(var(--accent));
+    padding: 8px 16px;
+    border-radius: 9px;
+    transition: opacity 0.15s ease;
+    cursor: pointer;
+  }
+  .run-btn:hover { opacity: 0.9; }
+  .run-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  /* Top-bar menu trigger (File / View / Help ▾). */
+  .menu-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgb(var(--muted));
+    padding: 4px 6px;
+    border-radius: 7px;
+    transition: color 0.15s ease, background 0.15s ease;
+    cursor: pointer;
+  }
+  .menu-link:hover { color: rgb(var(--ink)); background: rgb(var(--ink) / 0.05); }
+
+  /* Full-width greeting banner (accent gradient). */
+  .hero-banner {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    background:
+      radial-gradient(120% 140% at 85% -20%, rgb(var(--accent2) / 0.95), transparent 60%),
+      linear-gradient(105deg, rgb(var(--accent)) 0%, rgb(var(--accent2)) 100%);
+    color: #fff;
+  }
+
+  /* One rounded card holding a cluster of draggable gate tiles. */
+  .gate-group-card {
+    background: rgb(var(--surface));
+    border: 1px solid rgb(var(--line));
+    border-radius: 14px;
+    padding: 12px 14px;
+  }
+
+  /* Dropdown-style panel header (title ▾ + info + kebab). */
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .card-head-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: rgb(var(--accent));
+  }
+  .card-head-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 28px;
+    width: 28px;
+    border-radius: 8px;
+    color: rgb(var(--muted));
+    transition: background 0.15s ease, color 0.15s ease;
+    cursor: pointer;
+  }
+  .card-head-icon:hover { background: rgb(var(--ink) / 0.06); color: rgb(var(--ink)); }
+
+/* ========================================================================== */
+/* GATE TILES — tone-driven so the same markup works in light & dark          */
+/* ========================================================================== */
+.gate-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: 7px;
+  background: var(--g-bg);
+  color: var(--g-fg);
+  border: 1px solid var(--g-bd);
+  user-select: none;
+}
+
+.gate-violet  { --g-bg:#ECE7FB; --g-fg:#5B4BC4; --g-bd:#D6CCF5; }
+.gate-emerald { --g-bg:#DEF3E6; --g-fg:#2F8F5B; --g-bd:#C4E7D2; }
+.gate-teal    { --g-bg:#D7F0EE; --g-fg:#1F8A82; --g-bd:#BEE6E2; }
+.gate-amber   { --g-bg:#FBEAD1; --g-fg:#B4791E; --g-bd:#F2DCB6; }
+.gate-sky     { --g-bg:#DEEBFB; --g-fg:#2F6FC0; --g-bd:#C6DBF4; }
+.gate-rose    { --g-bg:#FBE0E7; --g-fg:#C24B6A; --g-bd:#F5CBD6; }
+.gate-cyan    { --g-bg:#D6EFF4; --g-fg:#1E8299; --g-bd:#BEE6EE; }
+.gate-fuchsia { --g-bg:#F6E0F3; --g-fg:#A5439A; --g-bd:#EFCBEA; }
+.gate-pink    { --g-bg:#FBDDE8; --g-fg:#C13E76; --g-bd:#F5C6D8; }
+.gate-slate   { --g-bg:#E9E7E2; --g-fg:#5C594F; --g-bd:#DAD6CD; }
+
+.dark .gate-violet  { --g-bg:rgba(139,133,240,.18); --g-fg:#BDB6F7; --g-bd:rgba(139,133,240,.36); }
+.dark .gate-emerald { --g-bg:rgba(52,180,110,.18);  --g-fg:#7FD8A6; --g-bd:rgba(52,180,110,.36); }
+.dark .gate-teal    { --g-bg:rgba(45,180,170,.18);  --g-fg:#79D8CF; --g-bd:rgba(45,180,170,.36); }
+.dark .gate-amber   { --g-bg:rgba(210,150,50,.18);  --g-fg:#E7BE79; --g-bd:rgba(210,150,50,.36); }
+.dark .gate-sky     { --g-bg:rgba(70,130,220,.18);  --g-fg:#8FBAF0; --g-bd:rgba(70,130,220,.36); }
+.dark .gate-rose    { --g-bg:rgba(210,80,110,.18);  --g-fg:#EE9AAE; --g-bd:rgba(210,80,110,.36); }
+.dark .gate-cyan    { --g-bg:rgba(40,160,190,.18);  --g-fg:#84D3E4; --g-bd:rgba(40,160,190,.36); }
+.dark .gate-fuchsia { --g-bg:rgba(180,80,170,.18);  --g-fg:#E4A0DA; --g-bd:rgba(180,80,170,.36); }
+.dark .gate-pink    { --g-bg:rgba(205,70,120,.18);  --g-fg:#F0A2C0; --g-bd:rgba(205,70,120,.36); }
+.dark .gate-slate   { --g-bg:rgba(150,146,138,.18); --g-fg:#C7C2B8; --g-bd:rgba(150,146,138,.34); }
+
+/* ========================================================================== */
+/* CIRCUIT GRID                                                                */
+/* ========================================================================== */
+.circuit-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.circuit-cell:hover { background: rgb(var(--ink) / 0.04); }
+.circuit-cell.valid-drop { background: rgb(var(--accent) / 0.1); border-color: rgb(var(--accent) / 0.5); }
+.circuit-cell.invalid-drop { background: rgb(220 60 60 / 0.1); border-color: rgb(220 60 60 / 0.5); }
+.circuit-cell.step-highlighted { border-color: rgb(var(--accent) / 0.6); background: rgb(var(--accent) / 0.08); }
+
+.control-node {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  cursor: grab;
+  z-index: 12;
+}
+.control-node:active { cursor: grabbing; }
+
+/* ========================================================================== */
+/* SCROLLBAR                                                                   */
+/* ========================================================================== */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgb(var(--ink) / 0.18); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--ink) / 0.3); }
+
+/* ========================================================================== */
+/* AMPLITUDE / MEASUREMENT BARS                                               */
+/* ========================================================================== */
+.amp-track { background: rgb(var(--ink) / 0.06); border-radius: 999px; overflow: hidden; }
+.amp-fill { background: rgb(var(--accent)); border-radius: 999px; height: 100%; }
+.amp-fill.faded { background: rgb(var(--accent) / 0.45); }
+
+/* ========================================================================== */
+/* AI ASSISTANT PANEL (kept)                                                  */
+/* ========================================================================== */
+.ai-markdown h2 { @apply text-base font-bold mt-4 mb-2; color: rgb(var(--accent)); }
+.ai-markdown h3 { @apply text-sm font-bold mt-3 mb-1; color: rgb(var(--ink)); }
+.ai-markdown h4 { @apply text-sm font-bold mt-3 mb-1; color: rgb(var(--accent)); }
+.ai-markdown p { @apply text-sm leading-relaxed; color: rgb(var(--muted)); }
+.ai-markdown code {
+  @apply px-1.5 py-0.5 rounded text-xs font-mono;
+  background: rgb(var(--accent) / 0.08);
+  border: 1px solid rgb(var(--accent) / 0.15);
+  color: rgb(var(--accent));
+}
+.ai-markdown strong { color: rgb(var(--ink)); font-weight: 600; }
+.ai-response-content { @apply rounded-xl p-4; background: rgb(var(--panel)); border: 1px solid rgb(var(--line)); }
+.ai-panel-scroll::-webkit-scrollbar { width: 4px; }
+.ai-panel-scroll::-webkit-scrollbar-thumb { background: rgb(var(--accent) / 0.3); border-radius: 4px; }
+
+@keyframes aiResponseFadeIn { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
+.ai-response-enter { animation: aiResponseFadeIn 0.4s ease-out forwards; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
+
+/* Legacy utilities kept for the AI panel overlay (dark floating surface). */
+.gradient-text {
+  background: linear-gradient(120deg, #6d7bff 0%, #a56cff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.glass {
+  background: rgba(24, 24, 27, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}

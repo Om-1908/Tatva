@@ -1,0 +1,41 @@
+.quantum-composer-root {
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  background-color: #161616;
+  color: #f4f4f4;
+  --quantum-blue: #0062ff;
+  --quantum-purple: #8a3ffc;
+  --quantum-teal: #007d79;
+  --quantum-orange: #ff6b00;
+  --quantum-grey: #6f6f6f;
+  --panel-bg: #262626;
+  --tile-bg: #393939;
+  --hover-bg: #4d4d4d;
+  --border: #525252;
+  --text-secondary: #a8a8a8;
+}
+
+.quantum-gate-blue { background-color: #0062ff; color: #ffffff; }
+.quantum-gate-purple { background-color: #8a3ffc; color: #ffffff; }
+.quantum-gate-teal { background-color: #007d79; color: #ffffff; }
+.quantum-gate-orange { background-color: #ff6b00; color: #ffffff; }
+.quantum-gate-grey { background-color: #6f6f6f; color: #ffffff; }
+
+.quantum-composer-root ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.quantum-composer-root ::-webkit-scrollbar-track {
+  background: #161616;
+}
+.quantum-composer-root ::-webkit-scrollbar-thumb {
+  background: #393939;
+  border-radius: 3px;
+}
+.quantum-composer-root ::-webkit-scrollbar-thumb:hover {
+  background: #525252;
+}
+
+.quantum-composer-root *:focus-visible {
+  outline: 2px solid #0062ff;
+  outline-offset: 1px;
+}

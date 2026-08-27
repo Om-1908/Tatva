@@ -1,23 +1,32 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+# Dependencies
+node_modules
+frontend/node_modules
+
+# Production Builds
+dist
+frontend/dist
+dist-ssr
+
+# Python Cache
+__pycache__
+backend/__pycache__
 *.pyc
+*.pyo
 
-# OS-specific
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+frontend/.env
+backend/.env
+
+# Editor files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
-Thumbs.db
-.pytest_cache/
-
-# Virtual environments — never commit these
-quantum/
-venv/
-.venv/
-env/
-
-# IDE folders
-.idea/
-.vscode/
-
-# TensorBoard / temporary run logs
-runs/
