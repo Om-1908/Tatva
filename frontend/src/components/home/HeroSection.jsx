@@ -45,7 +45,7 @@ const HeroSection = () => {
           className="w-full h-full object-cover opacity-60 filter brightness-90 mix-blend-screen scale-105"
         />
         {/* Dark Gradient Overlay for text contrast */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#07080e]/60 via-transparent to-[#07080e]/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#010101]/60 via-transparent to-[#010101]/95" />
       </div>
 
       {/* Ambient Background Orbs */}
@@ -110,7 +110,7 @@ const HeroSection = () => {
       </div>
 
       {/* Subtle bottom fade into scrollytelling section */}
-      <div className="absolute bottom-0 inset-x-0 h-20 md:h-24 bg-gradient-to-t from-[#030802] via-[#030802]/60 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 inset-x-0 h-20 md:h-24 bg-gradient-to-t from-[#010101] via-[#010101]/60 to-transparent pointer-events-none z-10" />
     </section>
   )
 }

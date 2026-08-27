@@ -91,8 +91,8 @@ export default function QuantumScrollExplode() {
     const width = canvas.clientWidth
     const height = canvas.clientHeight
 
-    // Clear background with exact frame edge color (#030802)
-    ctx.fillStyle = '#030802'
+    // Clear background with exact frame edge color (#010101)
+    ctx.fillStyle = '#010101'
     ctx.fillRect(0, 0, width, height)
 
     // Contain scaling: 100% of image frame is visible with ZERO cropping on top, bottom, or sides!
@@ -176,20 +176,20 @@ export default function QuantumScrollExplode() {
   const sec4Y = useTransform(scrollYProgress, [0.75, 0.80, 0.94, 0.98], [20, 0, 0, -20])
 
   return (
-    <div className="relative bg-[#030802] text-white selection:bg-[#22D3EE] selection:text-black">
+    <div className="relative bg-[#010101] text-white selection:bg-[#22D3EE] selection:text-black">
       {/* 500vh Sticky Scroll Container */}
-      <div ref={containerRef} className="relative h-[500vh] bg-[#030802]">
+      <div ref={containerRef} className="relative h-[500vh] bg-[#010101]">
         {/* Top gradient transition from Hero */}
-        <div className="absolute top-0 inset-x-0 h-20 md:h-24 bg-gradient-to-b from-[#030802] via-[#030802]/60 to-transparent pointer-events-none z-30" />
+        <div className="absolute top-0 inset-x-0 h-20 md:h-24 bg-gradient-to-b from-[#010101] via-[#010101]/60 to-transparent pointer-events-none z-30" />
 
         {/* Bottom gradient transition into HowItWorks */}
-        <div className="absolute bottom-0 inset-x-0 h-20 md:h-24 bg-gradient-to-t from-[#030802] via-[#030802]/80 to-transparent pointer-events-none z-30" />
+        <div className="absolute bottom-0 inset-x-0 h-20 md:h-24 bg-gradient-to-t from-[#010101] via-[#010101]/80 to-transparent pointer-events-none z-30" />
 
         {/* Sticky Canvas Viewport */}
-        <motion.div style={{ opacity: canvasOpacity, scale: canvasScale }} className="sticky top-0 h-screen w-full overflow-hidden bg-[#030802] flex items-center justify-center">
+        <motion.div style={{ opacity: canvasOpacity, scale: canvasScale }} className="sticky top-0 h-screen w-full overflow-hidden bg-[#010101] flex items-center justify-center">
           <canvas
             ref={canvasRef}
-            className="w-full h-full block bg-[#030802] pointer-events-none"
+            className="w-full h-full block bg-[#010101] pointer-events-none"
           />
 
           {/* 3. Text Overlay Story Sections (Narrow Vertical Column Alignment at Extreme Outer Margins) */}

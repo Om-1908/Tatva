@@ -54,7 +54,7 @@ const HowItWorksSection = () => {
       className="py-24 px-margin-mobile md:px-margin-desktop relative z-10"
     >
       {/* Seamless top transition gradient above the title text */}
-      <div className="absolute top-0 inset-x-0 h-20 md:h-24 bg-gradient-to-b from-[#030802] via-[#030802]/60 to-transparent pointer-events-none z-10" />
+      <div className="absolute top-0 inset-x-0 h-20 md:h-24 bg-gradient-to-b from-[#010101] via-[#010101]/60 to-transparent pointer-events-none z-10" />
 
       <div className="max-w-max-width mx-auto relative z-20">
         <div ref={titleRef} className="text-center mb-16">

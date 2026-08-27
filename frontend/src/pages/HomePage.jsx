@@ -13,13 +13,13 @@ const HomePage = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
-      className="bg-[#0A0A0C] min-h-screen text-white"
+      className="bg-[#010101] min-h-screen text-white"
     >
       {/* 1. Existing Navbar */}
       <Navbar />
 
       {/* 2. Page Content */}
-      <main className="relative z-10 bg-[#0A0A0C]">
+      <main className="relative z-10 bg-[#010101]">
         {/* Existing Hero Section */}
         <HeroSection />
 
