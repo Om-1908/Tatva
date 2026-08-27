@@ -298,98 +298,105 @@ export default function CircuitsPage() {
         />
 
         {/* Header Section */}
-        <header className="mb-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-2">My Circuits</h1>
-              <p className="text-on-surface-variant text-sm md:text-base">
+        <header className="mb-8 md:mb-10">
+          <div className="flex flex-row items-center justify-between gap-3 md:gap-6">
+            {/* Left Title & Subtitle */}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight mb-1 md:mb-2 truncate">
+                My Circuits
+              </h1>
+              <p className="text-on-surface-variant text-xs sm:text-sm md:text-base hidden sm:block">
                 Your saved quantum circuit synthesis history and custom compositions.
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* Right Buttons: Stacked vertically on mobile, side-by-side on desktop */}
+            <div className="flex flex-col md:flex-row items-end md:items-center gap-2 md:gap-3 shrink-0">
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="bg-transparent hover:bg-primary/10 text-on-surface border border-primary/50 hover:border-primary px-5 py-2.5 rounded-xl font-mono text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm"
+                className="bg-transparent hover:bg-primary/10 text-on-surface border border-primary/50 hover:border-primary px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-lg sm:rounded-xl font-mono text-[10px] sm:text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"
               >
-                <span className="material-symbols-outlined text-[18px]">upload</span>
+                <span className="material-symbols-outlined text-[15px] sm:text-[18px]">upload</span>
                 <span>Import Circuit</span>
               </button>
 
               <button
                 onClick={() => navigate('/composer')}
-                className="bg-primary-container hover:shadow-[0_0_20px_rgba(79,70,229,0.4)] text-white px-6 py-2.5 rounded-xl font-mono text-xs uppercase tracking-widest transition-all flex items-center gap-2 border-t border-white/20"
+                className="bg-primary-container hover:shadow-[0_0_20px_rgba(79,70,229,0.4)] text-white px-3.5 sm:px-6 py-1.5 sm:py-2.5 rounded-lg sm:rounded-xl font-mono text-[10px] sm:text-xs uppercase tracking-widest transition-all flex items-center gap-1.5 border-t border-white/20"
               >
-                <span className="material-symbols-outlined text-[18px]">add</span>
+                <span className="material-symbols-outlined text-[15px] sm:text-[18px]">add</span>
                 <span>New Synthesis</span>
               </button>
             </div>
           </div>
+          <p className="text-on-surface-variant text-xs mt-2 sm:hidden">
+            Your saved quantum circuit synthesis history.
+          </p>
         </header>
 
-        {/* Stats Bar */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          <div className="bg-[#11111A] border border-[#1A1A24] rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-sm">
-            <div className="w-1.5 absolute left-0 top-0 bottom-0 bg-primary rounded-l-2xl"></div>
-            <div className="pl-1">
-              <div className="font-mono text-xs text-on-surface-variant uppercase tracking-wider mb-1">
+        {/* Stats Bar — 1 single row on mobile (grid-cols-4), 4 cols on desktop */}
+        <section className="grid grid-cols-4 gap-1.5 sm:gap-3 md:gap-4 mb-8 md:mb-10">
+          <div className="bg-[#11111A] border border-[#1A1A24] rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 flex items-center gap-1.5 sm:gap-4 relative overflow-hidden shadow-sm">
+            <div className="w-1 sm:w-1.5 absolute left-0 top-0 bottom-0 bg-primary rounded-l-2xl"></div>
+            <div className="pl-1 min-w-0">
+              <div className="font-mono text-[9px] sm:text-xs text-on-surface-variant uppercase tracking-wider mb-0.5 truncate">
                 Total Circuits
               </div>
-              <div className="font-mono text-2xl font-bold text-white">{totalCircuitsCount}</div>
+              <div className="font-mono text-sm sm:text-xl md:text-2xl font-bold text-white leading-none">{totalCircuitsCount}</div>
             </div>
           </div>
 
-          <div className="bg-[#11111A] border border-[#1A1A24] rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-sm">
-            <div className="w-1.5 absolute left-0 top-0 bottom-0 bg-secondary rounded-l-2xl"></div>
-            <div className="pl-1">
-              <div className="font-mono text-xs text-on-surface-variant uppercase tracking-wider mb-1">
+          <div className="bg-[#11111A] border border-[#1A1A24] rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 flex items-center gap-1.5 sm:gap-4 relative overflow-hidden shadow-sm">
+            <div className="w-1 sm:w-1.5 absolute left-0 top-0 bottom-0 bg-secondary rounded-l-2xl"></div>
+            <div className="pl-1 min-w-0">
+              <div className="font-mono text-[9px] sm:text-xs text-on-surface-variant uppercase tracking-wider mb-0.5 truncate">
                 Avg Fidelity
               </div>
-              <div className="font-mono text-2xl font-bold text-secondary">{avgFidelity}%</div>
+              <div className="font-mono text-sm sm:text-xl md:text-2xl font-bold text-secondary leading-none">{avgFidelity}%</div>
             </div>
           </div>
 
-          <div className="bg-[#11111A] border border-[#1A1A24] rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-sm">
-            <div className="w-1.5 absolute left-0 top-0 bottom-0 bg-[#A855F7] rounded-l-2xl"></div>
-            <div className="pl-1">
-              <div className="font-mono text-xs text-on-surface-variant uppercase tracking-wider mb-1">
+          <div className="bg-[#11111A] border border-[#1A1A24] rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 flex items-center gap-1.5 sm:gap-4 relative overflow-hidden shadow-sm">
+            <div className="w-1 sm:w-1.5 absolute left-0 top-0 bottom-0 bg-[#A855F7] rounded-l-2xl"></div>
+            <div className="pl-1 min-w-0">
+              <div className="font-mono text-[9px] sm:text-xs text-on-surface-variant uppercase tracking-wider mb-0.5 truncate">
                 Gates Placed
               </div>
-              <div className="font-mono text-2xl font-bold text-white">{totalGatesPlaced}</div>
+              <div className="font-mono text-sm sm:text-xl md:text-2xl font-bold text-white leading-none">{totalGatesPlaced}</div>
             </div>
           </div>
 
-          <div className="bg-[#11111A] border border-[#1A1A24] rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-sm">
-            <div className="w-1.5 absolute left-0 top-0 bottom-0 bg-[#22C55E] rounded-l-2xl"></div>
-            <div className="pl-1">
-              <div className="font-mono text-xs text-on-surface-variant uppercase tracking-wider mb-1">
+          <div className="bg-[#11111A] border border-[#1A1A24] rounded-xl sm:rounded-2xl p-2 sm:p-3 md:p-4 flex items-center gap-1.5 sm:gap-4 relative overflow-hidden shadow-sm">
+            <div className="w-1 sm:w-1.5 absolute left-0 top-0 bottom-0 bg-[#22C55E] rounded-l-2xl"></div>
+            <div className="pl-1 min-w-0">
+              <div className="font-mono text-[9px] sm:text-xs text-on-surface-variant uppercase tracking-wider mb-0.5 truncate">
                 Synthesized Today
               </div>
-              <div className="font-mono text-2xl font-bold text-white">3</div>
+              <div className="font-mono text-sm sm:text-xl md:text-2xl font-bold text-white leading-none">3</div>
             </div>
           </div>
         </section>
 
-        {/* Filter & Search Bar */}
-        <section className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+        {/* Filter & Search Bar — 1 single row on phone view */}
+        <section className="flex flex-row justify-between items-center gap-2 md:gap-4 mb-8 overflow-x-auto pb-1 md:pb-0">
           {/* Search Box */}
-          <div className="bg-[#07070A] border border-[#1A1A24] focus-within:border-primary flex items-center px-4 py-2.5 rounded-2xl w-full md:w-[320px] transition-colors">
-            <span className="material-symbols-outlined text-on-surface-variant mr-2">search</span>
+          <div className="bg-[#07070A] border border-[#1A1A24] focus-within:border-primary flex items-center px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-xl sm:rounded-2xl shrink-0 w-[140px] sm:w-[220px] md:w-[320px] transition-colors">
+            <span className="material-symbols-outlined text-on-surface-variant text-[16px] sm:text-[20px] mr-1.5 sm:mr-2">search</span>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search circuits..."
-              className="bg-transparent border-none outline-none text-on-surface text-sm w-full placeholder:text-on-surface-variant/50 font-mono"
+              placeholder="Search..."
+              className="bg-transparent border-none outline-none text-on-surface text-xs sm:text-sm w-full placeholder:text-on-surface-variant/50 font-mono"
             />
           </div>
 
           {/* Filters */}
-          <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <select
               value={qubitFilter}
               onChange={(e) => setQubitFilter(e.target.value)}
-              className="bg-[#07070A] border border-[#1A1A24] text-white text-xs font-mono rounded-xl px-3.5 py-2.5 outline-none cursor-pointer hover:border-primary/50 transition-colors"
+              className="bg-[#07070A] border border-[#1A1A24] text-white text-[11px] sm:text-xs font-mono rounded-lg sm:rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2.5 outline-none cursor-pointer hover:border-primary/50 transition-colors"
             >
               <option value="All">Qubits (All)</option>
               <option value="2Q">2Q</option>
@@ -400,7 +407,7 @@ export default function CircuitsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#07070A] border border-[#1A1A24] text-white text-xs font-mono rounded-xl px-3.5 py-2.5 outline-none cursor-pointer hover:border-primary/50 transition-colors"
+              className="bg-[#07070A] border border-[#1A1A24] text-white text-[11px] sm:text-xs font-mono rounded-lg sm:rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2.5 outline-none cursor-pointer hover:border-primary/50 transition-colors"
             >
               <option value="All">Status (All)</option>
               <option value="Synthesized">Synthesized</option>
@@ -410,11 +417,11 @@ export default function CircuitsPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-[#07070A] border border-[#1A1A24] text-white text-xs font-mono rounded-xl px-3.5 py-2.5 outline-none cursor-pointer hover:border-primary/50 transition-colors"
+              className="bg-[#07070A] border border-[#1A1A24] text-white text-[11px] sm:text-xs font-mono rounded-lg sm:rounded-xl px-2 sm:px-3.5 py-1.5 sm:py-2.5 outline-none cursor-pointer hover:border-primary/50 transition-colors"
             >
-              <option value="Newest">Sort by: Newest</option>
-              <option value="Fidelity (High-Low)">Fidelity (High-Low)</option>
-              <option value="Depth (Low-High)">Depth (Low-High)</option>
+              <option value="Newest">Sort: Newest</option>
+              <option value="Fidelity (High-Low)">Fidelity</option>
+              <option value="Depth (Low-High)">Depth</option>
             </select>
           </div>
         </section>
@@ -427,7 +434,7 @@ export default function CircuitsPage() {
             <p className="text-xs mt-1">Try searching for a different name or reset your filters.</p>
           </div>
         ) : (
-          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <section className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 mb-12">
             {filteredCircuits.map((circ) => (
               <SpotlightCard
                 key={circ.id}
@@ -435,10 +442,10 @@ export default function CircuitsPage() {
                 dimmed={hoveredCircuitId !== null && hoveredCircuitId !== circ.id}
                 onHoverStart={() => setHoveredCircuitId(circ.id)}
                 onHoverEnd={() => setHoveredCircuitId(null)}
-                className="rounded-3xl border-t-2 border-t-[#4F46E5]"
+                className="rounded-2xl sm:rounded-3xl border-t-2 border-t-[#4F46E5]"
               >
                 {/* SVG Visual Circuit Blueprint Preview */}
-                <div className="h-32 bg-[#060608] relative rounded-t-3xl overflow-hidden border-b border-[#1A1A24] flex items-center justify-center p-2">
+                <div className="h-24 sm:h-32 bg-[#060608] relative rounded-t-2xl sm:rounded-t-3xl overflow-hidden border-b border-[#1A1A24] flex items-center justify-center p-2">
                   <svg className="w-full h-full opacity-35" preserveAspectRatio="none" viewBox="0 0 100 40">
                     <line x1="0" y1="10" x2="100" y2="10" stroke="#4F46E5" strokeWidth="0.5" />
                     <line x1="0" y1="20" x2="100" y2="20" stroke="#4F46E5" strokeWidth="0.5" />
@@ -450,66 +457,63 @@ export default function CircuitsPage() {
                     <circle cx="35" cy="30" r="3" fill="transparent" stroke="#22D3EE" strokeWidth="1" />
                   </svg>
 
-                  <div className="absolute top-3 left-3 flex gap-2">
+                  <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex gap-1.5 sm:gap-2">
                     {circ.type.includes('Synthesized') || circ.type.includes('AI') ? (
-                      <span className="bg-primary/15 text-primary border border-primary/30 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase flex items-center gap-1 backdrop-blur-md font-semibold">
-                        <span className="material-symbols-outlined text-[10px]">auto_awesome</span> AI
+                      <span className="bg-primary/15 text-primary border border-primary/30 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono uppercase flex items-center gap-1 backdrop-blur-md font-semibold">
+                        <span className="material-symbols-outlined text-[9px] sm:text-[10px]">auto_awesome</span> AI
                       </span>
                     ) : (
-                      <span className="bg-secondary/15 text-secondary border border-secondary/30 px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase flex items-center gap-1 backdrop-blur-md font-semibold">
+                      <span className="bg-secondary/15 text-secondary border border-secondary/30 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono uppercase flex items-center gap-1 backdrop-blur-md font-semibold">
                         Manual
                       </span>
                     )}
 
-                    <span className="bg-surface/80 text-on-surface border border-outline-variant/30 px-2.5 py-0.5 rounded-full text-[10px] font-mono backdrop-blur-md font-semibold">
+                    <span className="bg-surface/80 text-on-surface border border-outline-variant/30 px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono backdrop-blur-md font-semibold">
                       {circ.qubits}Q
                     </span>
                   </div>
                 </div>
 
                 {/* Card Info & Details */}
-                <div className="p-5 flex-1 flex flex-col">
-                  <div className="flex justify-between items-start mb-1 gap-2">
-                    <h3 className="font-bold text-base text-white truncate group-hover:text-primary transition-colors">
+                <div className="p-3 sm:p-5 flex-1 flex flex-col">
+                  <div className="flex justify-between items-start mb-1 gap-1.5">
+                    <h3 className="font-bold text-xs sm:text-base text-white truncate group-hover:text-primary transition-colors">
                       {circ.name}
                     </h3>
-                    <span className="bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-md text-[10px] font-mono shrink-0 font-semibold">
-                      {circ.type}
-                    </span>
                   </div>
 
-                  <div className="font-mono text-xs text-on-surface-variant mb-4">{circ.date}</div>
+                  <div className="font-mono text-[10px] sm:text-xs text-on-surface-variant mb-2.5 sm:mb-4 truncate">{circ.date}</div>
 
                   {/* Circuit Metrics Table */}
-                  <div className="grid grid-cols-3 gap-2 mb-5 bg-[#07070A] p-3 rounded-2xl border border-[#1A1A24] mt-auto">
+                  <div className="grid grid-cols-3 gap-1 sm:gap-2 mb-3 sm:mb-5 bg-[#07070A] p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-[#1A1A24] mt-auto">
                     <div>
-                      <div className="text-[10px] text-on-surface-variant font-mono uppercase mb-0.5">
+                      <div className="text-[9px] sm:text-[10px] text-on-surface-variant font-mono uppercase mb-0.5 truncate">
                         Fidelity
                       </div>
-                      <div className="font-mono text-xs font-bold text-secondary">{circ.fidelity}%</div>
+                      <div className="font-mono text-xs sm:text-xs font-bold text-secondary">{circ.fidelity}%</div>
                     </div>
                     <div>
-                      <div className="text-[10px] text-on-surface-variant font-mono uppercase mb-0.5">
+                      <div className="text-[9px] sm:text-[10px] text-on-surface-variant font-mono uppercase mb-0.5 truncate">
                         Gates
                       </div>
-                      <div className="font-mono text-xs font-bold text-white">{circ.gatesCount}</div>
+                      <div className="font-mono text-xs sm:text-xs font-bold text-white">{circ.gatesCount}</div>
                     </div>
                     <div>
-                      <div className="text-[10px] text-on-surface-variant font-mono uppercase mb-0.5">
+                      <div className="text-[9px] sm:text-[10px] text-on-surface-variant font-mono uppercase mb-0.5 truncate">
                         Depth
                       </div>
-                      <div className="font-mono text-xs font-bold text-white">{circ.depth}</div>
+                      <div className="font-mono text-xs sm:text-xs font-bold text-white">{circ.depth}</div>
                     </div>
                   </div>
 
                   {/* Card Actions Footer */}
-                  <div className="flex items-center justify-between pt-3 border-t border-[#1A1A24]">
+                  <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-[#1A1A24]">
                     <button
                       onClick={() => handleOpenInComposer(circ)}
-                      className="font-mono text-xs text-primary hover:text-primary-fixed transition-colors flex items-center gap-1 group-hover:underline font-semibold"
+                      className="font-mono text-[11px] sm:text-xs text-primary hover:text-primary-fixed transition-colors flex items-center gap-1 group-hover:underline font-semibold"
                     >
                       <span>Open in Composer</span>
-                      <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                      <span className="material-symbols-outlined text-[13px] sm:text-[14px]">arrow_forward</span>
                     </button>
 
                     <div className="flex items-center gap-2 text-on-surface-variant">

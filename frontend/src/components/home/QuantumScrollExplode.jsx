@@ -168,17 +168,17 @@ export default function QuantumScrollExplode() {
           {/* 3. Text Overlay Story Sections (Narrow Vertical Column Alignment at Extreme Outer Margins) */}
           <div className="absolute inset-0 pointer-events-none">
             
-            {/* SECTION 1 (EXTREME LEFT): WHAT IS A QUANTUM COMPUTER? */}
-            <div className="absolute inset-0 flex items-center justify-start px-3 md:px-6 lg:px-8">
+            {/* SECTION 1 (MOBILE TOP / DESKTOP LEFT): WHAT IS A QUANTUM COMPUTER? */}
+            <div className="absolute inset-0 flex items-start pt-28 sm:pt-32 md:pt-0 md:items-center justify-center md:justify-start px-4 md:px-8">
               <motion.div
                 style={{ opacity: sec1Opacity, y: sec1Y }}
-                className="max-w-[280px] sm:max-w-[320px] md:max-w-[360px] text-left pointer-events-auto z-20"
+                className="max-w-[320px] sm:max-w-[340px] md:max-w-[380px] text-left pointer-events-auto z-20"
               >
-                <div className="inline-flex items-center gap-2 font-mono text-xs md:text-sm text-[#22D3EE] tracking-widest uppercase font-semibold mb-3">
+                <div className="inline-flex items-center gap-2 font-mono text-xs md:text-sm text-[#22D3EE] tracking-widest uppercase font-semibold mb-2 sm:mb-3">
                   <span className="w-2 h-2 rounded-full bg-[#22D3EE]" />
                   <span>01 / QUANTUM COMPUTING</span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-extrabold text-white mb-4 tracking-tight leading-[1.15] font-headline">
+                <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-[38px] font-extrabold text-white mb-2 sm:mb-3 tracking-tight leading-[1.15] font-headline">
                   <VariableProximity
                     label="What Is a Quantum Computer?"
                     className="text-white cursor-default select-none"
@@ -189,23 +189,23 @@ export default function QuantumScrollExplode() {
                     falloff="linear"
                   />
                 </h2>
-                <p className="text-sm md:text-base lg:text-lg text-white/80 leading-relaxed font-light">
+                <p className="text-xs sm:text-sm md:text-base text-white/80 leading-relaxed font-light">
                   Quantum computers use qubits to represent and manipulate quantum states. Unlike classical bits, qubits can exist in superposition and can become entangled, enabling new approaches to certain computational problems.
                 </p>
               </motion.div>
             </div>
 
-            {/* SECTION 2 (EXTREME RIGHT): HOW DO WE CONTROL QUBITS? */}
-            <div className="absolute inset-0 flex items-center justify-end px-3 md:px-6 lg:px-8">
+            {/* SECTION 2 (MOBILE BOTTOM / DESKTOP RIGHT): HOW DO WE CONTROL QUBITS? */}
+            <div className="absolute inset-0 flex items-end pb-28 sm:pb-32 md:pb-0 md:items-center justify-center md:justify-end px-4 md:px-8">
               <motion.div
                 style={{ opacity: sec2Opacity, y: sec2Y }}
-                className="max-w-[280px] sm:max-w-[320px] md:max-w-[360px] text-left pointer-events-auto z-20"
+                className="max-w-[320px] sm:max-w-[340px] md:max-w-[380px] text-left pointer-events-auto z-20"
               >
-                <div className="inline-flex items-center gap-2 font-mono text-xs md:text-sm text-[#22D3EE] tracking-widest uppercase font-semibold mb-3">
+                <div className="inline-flex items-center gap-2 font-mono text-xs md:text-sm text-[#22D3EE] tracking-widest uppercase font-semibold mb-2 sm:mb-3">
                   <span className="w-2 h-2 rounded-full bg-[#22D3EE]" />
                   <span>02 / QUANTUM CIRCUITS</span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-extrabold text-white mb-4 tracking-tight leading-[1.15] font-headline">
+                <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-[38px] font-extrabold text-white mb-2 sm:mb-3 tracking-tight leading-[1.15] font-headline">
                   <VariableProximity
                     label="How Do We Control Qubits?"
                     className="text-white cursor-default select-none"
@@ -216,36 +216,36 @@ export default function QuantumScrollExplode() {
                     falloff="linear"
                   />
                 </h2>
-                <p className="text-sm md:text-base lg:text-lg text-white/80 leading-relaxed font-light mb-5">
+                <p className="text-xs sm:text-sm md:text-base text-white/80 leading-relaxed font-light mb-3 sm:mb-4">
                   Quantum gates transform qubit states. By combining gates into a circuit, we can move a quantum system from an initial state toward a desired target state.
                 </p>
 
                 {/* Supporting Graphic: Subtle Quantum Circuit Wire */}
-                <div className="inline-flex flex-wrap items-center gap-2 px-3.5 py-2 rounded-xl bg-black/70 border border-white/15 backdrop-blur-md font-mono text-xs text-[#22D3EE]">
+                <div className="inline-flex flex-wrap items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/80 border border-white/15 backdrop-blur-md font-mono text-[11px] text-[#22D3EE]">
                   <span className="text-white/40 font-semibold">|0⟩</span>
                   <span className="text-white/20">──</span>
-                  <span className="px-2 py-0.5 rounded bg-[#4F46E5]/40 border border-[#4F46E5]/60 text-white font-bold">H</span>
+                  <span className="px-1.5 py-0.5 rounded bg-[#4F46E5]/40 border border-[#4F46E5]/60 text-white font-bold">H</span>
                   <span className="text-white/20">──</span>
-                  <span className="px-2 py-0.5 rounded bg-[#22D3EE]/30 border border-[#22D3EE]/50 text-[#22D3EE] font-bold">RY</span>
+                  <span className="px-1.5 py-0.5 rounded bg-[#22D3EE]/30 border border-[#22D3EE]/50 text-[#22D3EE] font-bold">RY</span>
                   <span className="text-white/20">──</span>
-                  <span className="px-2 py-0.5 rounded bg-[#4F46E5]/40 border border-[#4F46E5]/60 text-white font-bold">RZ</span>
+                  <span className="px-1.5 py-0.5 rounded bg-[#4F46E5]/40 border border-[#4F46E5]/60 text-white font-bold">RZ</span>
                   <span className="text-white/20">──►</span>
                   <span className="text-[#22D3EE] font-bold">|ψ⟩</span>
                 </div>
               </motion.div>
             </div>
 
-            {/* SECTION 3 (EXTREME LEFT): THE PROBLEM */}
-            <div className="absolute inset-0 flex items-center justify-start px-3 md:px-6 lg:px-8">
+            {/* SECTION 3 (MOBILE TOP / DESKTOP LEFT): THE PROBLEM */}
+            <div className="absolute inset-0 flex items-start pt-28 sm:pt-32 md:pt-0 md:items-center justify-center md:justify-start px-4 md:px-8">
               <motion.div
                 style={{ opacity: sec3Opacity, y: sec3Y }}
-                className="max-w-[280px] sm:max-w-[320px] md:max-w-[360px] text-left pointer-events-auto z-20"
+                className="max-w-[320px] sm:max-w-[340px] md:max-w-[380px] text-left pointer-events-auto z-20"
               >
-                <div className="inline-flex items-center gap-2 font-mono text-xs md:text-sm text-[#22D3EE] tracking-widest uppercase font-semibold mb-3">
+                <div className="inline-flex items-center gap-2 font-mono text-xs md:text-sm text-[#22D3EE] tracking-widest uppercase font-semibold mb-2 sm:mb-3">
                   <span className="w-2 h-2 rounded-full bg-[#22D3EE]" />
                   <span>03 / THE CHALLENGE</span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-extrabold text-white mb-4 tracking-tight leading-[1.15] font-headline">
+                <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-[38px] font-extrabold text-white mb-2 sm:mb-3 tracking-tight leading-[1.15] font-headline">
                   <VariableProximity
                     label="Finding the Right Circuit Is Hard."
                     className="text-white cursor-default select-none"
@@ -256,23 +256,23 @@ export default function QuantumScrollExplode() {
                     falloff="linear"
                   />
                 </h2>
-                <p className="text-sm md:text-base lg:text-lg text-white/80 leading-relaxed font-light">
+                <p className="text-xs sm:text-sm md:text-base text-white/80 leading-relaxed font-light">
                   A target state can be reached through many possible gate sequences. As the number of qubits and available operations grows, the search space becomes increasingly difficult to explore and optimize manually.
                 </p>
               </motion.div>
             </div>
 
-            {/* SECTION 4 (EXTREME RIGHT): INTRODUCE TATVA */}
-            <div className="absolute inset-0 flex items-center justify-end px-3 md:px-6 lg:px-8">
+            {/* SECTION 4 (MOBILE BOTTOM / DESKTOP RIGHT): INTRODUCE TATVA */}
+            <div className="absolute inset-0 flex items-end pb-28 sm:pb-32 md:pb-0 md:items-center justify-center md:justify-end px-4 md:px-8">
               <motion.div
                 style={{ opacity: sec4Opacity, y: sec4Y }}
-                className="max-w-[280px] sm:max-w-[320px] md:max-w-[360px] text-left pointer-events-auto z-20"
+                className="max-w-[320px] sm:max-w-[340px] md:max-w-[380px] text-left pointer-events-auto z-20"
               >
-                <div className="inline-flex items-center gap-2 font-mono text-xs md:text-sm text-[#22D3EE] tracking-widest uppercase font-semibold mb-3">
+                <div className="inline-flex items-center gap-2 font-mono text-xs md:text-sm text-[#22D3EE] tracking-widest uppercase font-semibold mb-2 sm:mb-3">
                   <span className="w-2 h-2 rounded-full bg-[#22D3EE]" />
                   <span>04 / TATVA</span>
                 </div>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-extrabold text-white mb-4 tracking-tight leading-[1.15] font-headline">
+                <h2 className="text-xl sm:text-2xl md:text-4xl lg:text-[38px] font-extrabold text-white mb-2 sm:mb-3 tracking-tight leading-[1.15] font-headline">
                   <VariableProximity
                     label="What If the Circuit Could Learn?"
                     className="text-white cursor-default select-none"
@@ -283,7 +283,7 @@ export default function QuantumScrollExplode() {
                     falloff="linear"
                   />
                 </h2>
-                <p className="text-sm md:text-base lg:text-lg text-white/80 leading-relaxed font-light">
+                <p className="text-xs sm:text-sm md:text-base text-white/80 leading-relaxed font-light">
                   TATVA treats circuit synthesis as a reinforcement-learning problem. Instead of manually searching through gate sequences, an agent learns which actions move the current quantum state closer to the target while reducing unnecessary circuit operations.
                 </p>
               </motion.div>

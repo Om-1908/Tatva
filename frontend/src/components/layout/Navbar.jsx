@@ -130,26 +130,79 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Mobile Dropdown */}
+      {/* Mobile Right-Aligned Dropdown Menu Box */}
       {mobileOpen && (
-        <div className="md:hidden bg-surface-container-high border-t border-white/5">
-          <div className="flex flex-col px-4 py-4 space-y-4">
-            <Link to="/" onClick={() => setMobileOpen(false)} className={isActive('/') ? 'text-primary font-body-md' : 'text-on-surface-variant font-body-md'}>Home</Link>
-            <Link to="/team" onClick={() => setMobileOpen(false)} className={isActive('/team') ? 'text-primary font-body-md' : 'text-on-surface-variant font-body-md'}>Team</Link>
-            <hr className="border-outline-variant" />
-            {isLoggedIn ? (
-              <>
-                <Link to="/circuits" onClick={() => setMobileOpen(false)} className={isActive('/circuits') ? 'text-primary font-body-md' : 'text-on-surface-variant font-body-md'}>My Circuits</Link>
-                <Link to="/composer" onClick={() => setMobileOpen(false)} className={isActive('/composer') ? 'text-primary font-body-md' : 'text-on-surface-variant font-body-md'}>Composer</Link>
-                <button onClick={handleLogout} className="w-full py-2 rounded font-body-md text-error border border-error/30">Logout</button>
-              </>
-            ) : (
-              <>
-                <button onClick={() => { navigate('/auth'); setMobileOpen(false) }} className="w-full py-2 rounded font-body-md text-on-surface border border-outline-variant">Login</button>
-                <button onClick={() => { navigate('/auth?tab=register'); setMobileOpen(false) }} className="w-full py-2 rounded font-body-md text-white bg-primary-container">Sign Up</button>
-              </>
-            )}
-          </div>
+        <div className="md:hidden absolute top-[76px] right-2 sm:right-4 w-[230px] bg-[#12111a]/98 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] rounded-2xl z-[600] p-3.5 flex flex-col space-y-2 animate-fadeIn">
+          <Link
+            to="/"
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-base font-semibold text-left transition-colors ${
+              isActive('/') ? 'text-[#22D3EE] bg-white/10' : 'text-white/80 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[22px]">home</span>
+            <span>Home</span>
+          </Link>
+
+          <Link
+            to="/team"
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-base font-semibold text-left transition-colors ${
+              isActive('/team') ? 'text-[#22D3EE] bg-white/10' : 'text-white/80 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[22px]">groups</span>
+            <span>Team</span>
+          </Link>
+
+          <Link
+            to={isLoggedIn ? '/circuits' : '/auth'}
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-base font-semibold text-left transition-colors ${
+              isActive('/circuits') ? 'text-[#22D3EE] bg-white/10' : 'text-white/80 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[22px]">schema</span>
+            <span>My Circuits</span>
+          </Link>
+
+          <Link
+            to={isLoggedIn ? '/composer' : '/auth'}
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-base font-semibold text-left transition-colors ${
+              isActive('/composer') ? 'text-[#22D3EE] bg-white/10' : 'text-white/80 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[22px]">memory</span>
+            <span>Composer</span>
+          </Link>
+
+          <hr className="border-white/10 my-1" />
+
+          {isLoggedIn ? (
+            <button
+              onClick={handleLogout}
+              className="w-full py-2.5 px-3.5 rounded-xl font-semibold text-red-400 bg-red-500/10 border border-red-500/30 flex items-center justify-start gap-2.5 hover:bg-red-500/20 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[20px]">logout</span>
+              <span>Logout</span>
+            </button>
+          ) : (
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                onClick={() => { navigate('/auth'); setMobileOpen(false) }}
+                className="w-full py-2.5 rounded-xl font-semibold text-white border border-white/20 hover:bg-white/10 transition-colors text-center"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => { navigate('/auth?tab=register'); setMobileOpen(false) }}
+                className="w-full py-2.5 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-500/20 transition-all text-center"
+              >
+                Sign Up
+              </button>
+            </div>
+          )}
         </div>
       )}
     </nav>

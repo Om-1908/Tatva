@@ -100,13 +100,13 @@ const TeamPage = () => {
         <section className="px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto mb-16 md:mb-20">
           <h2
             ref={teamTitleRef}
-            className="text-3xl md:text-4xl font-extrabold text-white mb-10 text-center flex items-center justify-center gap-4"
+            className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-8 sm:mb-10 text-center flex items-center justify-center gap-3 sm:gap-4"
           >
-            <div className="h-px bg-outline-variant/30 flex-grow max-w-[100px]" />
+            <div className="h-px bg-outline-variant/30 flex-grow max-w-[60px] sm:max-w-[100px]" />
             Core Engineering Team
-            <div className="h-px bg-outline-variant/30 flex-grow max-w-[100px]" />
+            <div className="h-px bg-outline-variant/30 flex-grow max-w-[60px] sm:max-w-[100px]" />
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {members.map((member, i) => (
               <MemberCard key={member.name} {...member} index={i} />
             ))}
@@ -117,13 +117,13 @@ const TeamPage = () => {
         <section className="px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto">
           <h2
             ref={mentorTitleRef}
-            className="text-3xl md:text-4xl font-extrabold text-white mb-10 text-center flex items-center justify-center gap-4"
+            className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-8 sm:mb-10 text-center flex items-center justify-center gap-3 sm:gap-4"
           >
-            <div className="h-px bg-outline-variant/30 flex-grow max-w-[100px]" />
+            <div className="h-px bg-outline-variant/30 flex-grow max-w-[60px] sm:max-w-[100px]" />
             Project Mentorship
-            <div className="h-px bg-outline-variant/30 flex-grow max-w-[100px]" />
+            <div className="h-px bg-outline-variant/30 flex-grow max-w-[60px] sm:max-w-[100px]" />
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 max-w-3xl mx-auto gap-8">
+          <div className="grid grid-cols-2 max-w-3xl mx-auto gap-3 sm:gap-8">
             {mentors.map((mentor, i) => (
               <MentorCard key={mentor.name} {...mentor} index={i} />
             ))}
