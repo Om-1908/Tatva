@@ -84,18 +84,11 @@ const HeroSection = () => {
           />
         </h1>
 
-        {/* Create Your Circuit Button with BorderGlow */}
+        {/* Create Your Circuit Button with Solid White Hover Border */}
         <div className="hero-fade-up fade-up delay-900 pt-4 flex flex-col sm:flex-row items-center justify-center">
           <BorderGlow
-            edgeSensitivity={30}
-            glowColor="40 80 80"
             backgroundColor="#120F17"
             borderRadius={28}
-            glowRadius={40}
-            glowIntensity={1}
-            coneSpread={25}
-            animated={false}
-            colors={['#c084fc', '#f472b6', '#38bdf8']}
             onClick={handleCreateCircuit}
             className="cursor-pointer group hover:scale-[1.03] transition-transform duration-300 shadow-2xl"
           >
