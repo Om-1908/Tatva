@@ -19,40 +19,40 @@ const members = [
     linkedin: 'https://www.linkedin.com/in/aryan-jadhav-15a99730a/',
     photo: 'https://media.licdn.com/dms/image/v2/D4E03AQEpLn3pttc0Nw/profile-displayphoto-crop_800_800/B4EZipCBXzGcAQ-/0/1755182543144?e=1788998400&v=beta&t=CiPuSA3yihixQ2XQDdJiR0MiqaROOB3K9GNQqVNH_fk',
     initials: 'AJ',
-    color: 'cyan',
+    color: 'indigo',
   },
   {
     name: 'Manas Shinde',
     linkedin: 'https://www.linkedin.com/in/manas-hs060805/',
     photo: 'https://media.licdn.com/dms/image/v2/D4D03AQGTiYR3mqHd4A/profile-displayphoto-crop_800_800/B4DZ_r0SIhHQAI-/0/1786367781317?e=1788998400&v=beta&t=A_lFZDlMEVkqCT_9_F6lerz3-cC8msFpzml8J2iXn6g',
     initials: 'MS',
-    color: 'purple',
+    color: 'indigo',
   },
   {
     name: 'Prithvi Shinde',
     linkedin: 'https://www.linkedin.com/in/prithvi-shinde-12926635b/',
     photo: 'https://media.licdn.com/dms/image/v2/D4E03AQEqr2F3NUDryQ/profile-displayphoto-shrink_800_800/B4EZaGT25qGYAc-/0/1746010080584?e=1788998400&v=beta&t=soAfCyZDtMBoAylO_nKyUNlvKLxPf25txOKLdTQfS4U',
     initials: 'PS',
-    color: 'green',
+    color: 'indigo',
   },
 ]
 
 const mentors = [
   {
-    name: 'Prof. Uday Wad',
-    designation: 'Industry Mentor',
-    linkedin: 'https://www.linkedin.com/in/uday-wad-8740b41a1/',
-    photo: 'https://www.esds.co.in/home-images/management/uday-wad.jpg',
-    initials: 'UW',
-    color: 'cyan',
-  },
-  {
     name: 'Prof. Sheetal Bhandare',
-    designation: 'Project Guide',
+    designation: 'PROJECT GUIDE',
     linkedin: 'https://www.linkedin.com/in/shital-bhandare-pawar-19a352177/',
     photo: 'https://www.kkwagh.edu.in/public/frontend/uploads/faculty/196frt_ms.s.s.bhandare_s.jpg',
     initials: 'SB',
-    color: 'purple',
+    color: 'indigo',
+  },
+  {
+    name: 'Prof. Uday Wad',
+    designation: 'INDUSTRY MENTOR',
+    linkedin: 'https://www.linkedin.com/in/uday-wad-8740b41a1/',
+    photo: 'https://www.esds.co.in/home-images/management/uday-wad.jpg',
+    initials: 'UW',
+    color: 'indigo',
   },
 ]
 
