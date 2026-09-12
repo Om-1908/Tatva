@@ -31,6 +31,7 @@ backend/.env
 .idea
 .DS_Store
 
-# Large datasets and separate RL models repo
-backend/rl_models/
+# Large training dataset binaries (500MB+ shards)
 *.h5
+backend/rl_models/tatva_dataset_fast/
+

@@ -1,0 +1,38 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# OS-specific
+.DS_Store
+Thumbs.db
+.pytest_cache/
+
+# Virtual environments — never commit these
+quantum/
+venv/
+.venv/
+env/
+
+# IDE folders
+.idea/
+.vscode/
+
+# TensorBoard / temporary run logs
+runs/
+
+# Generated script outputs (circuit diagrams, QASM)
+outputs/
+
+# Temporary debug files
+test_circuit.png
+
+# Generated training logs and plots
+quantumrl/logs/*.txt
+quantumrl/plots/
+logs/
+plots/
+
+# Validation backup (keep locally, not in remote)
+quantumrl/config_2qubit_backup.py
