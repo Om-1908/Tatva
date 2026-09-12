@@ -9,3 +9,7 @@ python-dotenv==1.0.0
 gunicorn==21.2.0
 pymongo>=4.6.0
 dnspython>=2.4.0
+torch>=2.0.0
+gymnasium>=0.29.0
+h5py>=3.9.0
+matplotlib>=3.7.0

@@ -64,11 +64,14 @@ export default function CircuitCanvas({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [activeCell, removeGate, setSelectedGate, readOnly])
 
+  const labelWidth = readOnly ? 46 : 70
+
   return (
     <div
-      className={`flex-1 bg-[#1a1a1a] h-full overflow-x-auto overflow-y-auto flex flex-col p-6 relative select-none ${
-        readOnly ? 'rounded-2xl border border-white/10' : ''
-      }`}
+      className={`flex-1 ${
+        readOnly ? 'bg-[#161622] p-3 sm:p-3.5' : 'bg-[#1a1a1a] p-6'
+      } h-full min-h-0 min-w-0 overflow-x-auto overflow-y-auto flex flex-col relative select-none [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#0d1117] [&::-webkit-scrollbar-thumb]:bg-cyan-500/50 hover:[&::-webkit-scrollbar-thumb]:bg-cyan-400 [&::-webkit-scrollbar-thumb]:rounded-full`}
+      style={{ scrollbarColor: 'rgba(6, 182, 212, 0.5) #0d1117', scrollbarWidth: 'thin' }}
       onClick={() => {
         if (readOnly) return
         setActiveCell(null)
@@ -108,7 +111,7 @@ export default function CircuitCanvas({
         {/* Column Headers (1, 2, 3...) */}
         <div className="flex items-center mb-2">
           {/* Wire header padding */}
-          <div className="w-[100px] shrink-0" />
+          <div style={{ width: `${labelWidth}px` }} className="shrink-0" />
           {Array.from({ length: totalCols }, (_, colIdx) => (
             <div
               key={colIdx}
@@ -119,10 +122,10 @@ export default function CircuitCanvas({
           ))}
         </div>
 
-        {/* SVG Multi-Qubit Vertical Lines Overlay */}
+        {/* SVG Multi-Qubit Vertical Lines Overlay (z-0 behind cells so drop hit testing works) */}
         <svg
-          className="absolute left-[100px] top-[28px] pointer-events-none z-10"
-          style={{ width: `${totalCols * 48}px`, height: `${qubits * 48 + 30}px` }}
+          className="absolute top-[28px] pointer-events-none z-0"
+          style={{ left: `${labelWidth}px`, width: `${totalCols * 48}px`, height: `${qubits * 48 + 30}px` }}
         >
           {Array.from({ length: totalCols }, (_, stepIdx) => {
             const resolvedCells = []
@@ -247,16 +250,19 @@ export default function CircuitCanvas({
 
         {/* Qubit Rows */}
         {Array.from({ length: qubits }, (_, qIdx) => (
-          <div key={qIdx} className="flex items-center h-[48px] relative">
+          <div key={qIdx} className="flex items-center h-[48px] relative z-10">
             {/* Left Qubit Wire Label */}
-            <div className="w-[100px] shrink-0 flex items-center gap-2 pr-3 justify-end z-10">
-              <span className="font-mono text-sm text-white font-bold">
+            <div
+              style={{ width: `${labelWidth}px` }}
+              className="shrink-0 flex items-center pr-2.5 justify-end z-20"
+            >
+              <span className="font-mono text-xs sm:text-sm text-white font-bold tracking-tight">
                 q[{qIdx}]
               </span>
             </div>
 
             {/* Wire Cells */}
-            <div className="flex items-center relative">
+            <div className="flex items-center relative z-10">
               {Array.from({ length: totalCols }, (_, colIdx) => {
                 const isSelected =
                   !readOnly && activeCell?.qubit === qIdx && activeCell?.step === colIdx
@@ -287,10 +293,13 @@ export default function CircuitCanvas({
           </div>
         ))}
 
-        {/* Classical Register c4 line below wires */}
-        <div className="flex items-center mt-4 pl-[100px] relative">
-          <div className="flex items-center gap-2 pr-3 text-sm text-white font-bold font-mono w-[100px] justify-end -ml-[100px]">
-            <span>c4</span>
+        {/* Classical Register c{qubits} line below wires */}
+        <div className="flex items-center mt-3 relative" style={{ paddingLeft: `${labelWidth}px` }}>
+          <div
+            style={{ width: `${labelWidth}px`, marginLeft: `-${labelWidth}px` }}
+            className="flex items-center pr-2.5 text-xs sm:text-sm text-white font-bold font-mono justify-end"
+          >
+            <span>c{qubits}</span>
           </div>
           <div
             className="h-[2px] bg-[#525252]"

@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useDrag } from 'react-dnd'
+import React, { useState, useRef } from 'react'
+import { useCircuitStore } from './core/store/useCircuitStore'
 
 const GATE_CATEGORIES = [
   {
@@ -61,57 +61,125 @@ const GATE_CATEGORIES = [
 ]
 
 function GateItemRow({ gate }) {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: 'GATE',
-    item: { type: gate.type },
-    collect: (m) => ({ isDragging: !!m.isDragging() }),
-  }))
+  const { paletteSelectedGate, setPaletteSelectedGate } = useCircuitStore()
+  const isSelected = paletteSelectedGate?.type === gate.type
+  const [isDragging, setIsDragging] = useState(false)
+  const isDraggingRef = useRef(false)
+
+  const handleDragStart = (e) => {
+    isDraggingRef.current = true
+    setIsDragging(true)
+    const payload = JSON.stringify({
+      type: gate.type,
+      name: gate.name,
+      symbol: gate.symbol,
+      theta: gate.theta ?? (['RX', 'RY', 'RZ', 'P'].includes((gate.type || '').toUpperCase()) ? Math.PI / 2 : undefined),
+    })
+    e.dataTransfer.setData('application/json', payload)
+    e.dataTransfer.setData('text/plain', gate.type)
+    e.dataTransfer.effectAllowed = 'copy'
+  }
+
+  const handleDragEnd = () => {
+    setIsDragging(false)
+    setTimeout(() => {
+      isDraggingRef.current = false
+    }, 100)
+  }
+
+  const handleClick = (e) => {
+    e.stopPropagation()
+    if (isDraggingRef.current) return
+    setPaletteSelectedGate(gate)
+  }
 
   return (
     <div
-      ref={drag}
-      className={`flex items-center gap-3 py-1.5 px-2 rounded-md hover:bg-white/5 cursor-grab active:cursor-grabbing transition-colors select-none ${
-        isDragging ? 'opacity-40' : ''
-      }`}
-      title={`Drag ${gate.name} onto circuit canvas`}
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onClick={handleClick}
+      className={`flex items-center gap-3 py-1.5 px-2 rounded-md transition-all cursor-grab active:cursor-grabbing select-none ${
+        isSelected
+          ? 'bg-cyan-500/20 ring-1 ring-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.3)]'
+          : 'hover:bg-white/5'
+      } ${isDragging ? 'opacity-40 scale-95' : ''}`}
+      title={`Drag ${gate.name} onto canvas, or click to place`}
     >
       <div
-        className={`w-8 h-8 apple-squircle-gate font-mono font-bold text-xs shrink-0 ${gate.color}`}
+        className={`w-8 h-8 apple-squircle-gate font-mono font-bold text-xs shrink-0 pointer-events-none ${gate.color}`}
       >
         {gate.symbol}
       </div>
-      <span className="text-xs text-[#e1e4e8] font-medium truncate">
+      <span className="text-xs text-[#e1e4e8] font-medium truncate pointer-events-none">
         {gate.name}
       </span>
+      {isSelected && (
+        <span className="ml-auto w-2 h-2 rounded-full bg-cyan-400 animate-pulse pointer-events-none" />
+      )}
     </div>
   )
 }
 
 function GateItemTile({ gate }) {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: 'GATE',
-    item: { type: gate.type },
-    collect: (m) => ({ isDragging: !!m.isDragging() }),
-  }))
+  const { paletteSelectedGate, setPaletteSelectedGate } = useCircuitStore()
+  const isSelected = paletteSelectedGate?.type === gate.type
+  const [isDragging, setIsDragging] = useState(false)
+  const isDraggingRef = useRef(false)
+
+  const handleDragStart = (e) => {
+    isDraggingRef.current = true
+    setIsDragging(true)
+    const payload = JSON.stringify({
+      type: gate.type,
+      name: gate.name,
+      symbol: gate.symbol,
+      theta: gate.theta ?? (['RX', 'RY', 'RZ', 'P'].includes((gate.type || '').toUpperCase()) ? Math.PI / 2 : undefined),
+    })
+    e.dataTransfer.setData('application/json', payload)
+    e.dataTransfer.setData('text/plain', gate.type)
+    e.dataTransfer.effectAllowed = 'copy'
+  }
+
+  const handleDragEnd = () => {
+    setIsDragging(false)
+    setTimeout(() => {
+      isDraggingRef.current = false
+    }, 100)
+  }
+
+  const handleClick = (e) => {
+    e.stopPropagation()
+    if (isDraggingRef.current) return
+    setPaletteSelectedGate(gate)
+  }
 
   return (
     <div
-      ref={drag}
-      className={`w-10 h-10 apple-squircle-gate font-mono font-bold text-sm cursor-grab active:cursor-grabbing ${
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onClick={handleClick}
+      className={`w-10 h-10 apple-squircle-gate font-mono font-bold text-sm cursor-grab active:cursor-grabbing transition-transform ${
         gate.color
-      } ${isDragging ? 'opacity-40' : ''}`}
-      title={`${gate.name} gate`}
+      } ${isSelected ? 'ring-2 ring-cyan-400 scale-110 shadow-[0_0_10px_rgba(6,182,212,0.4)]' : ''} ${
+        isDragging ? 'opacity-40 scale-90' : ''
+      }`}
+      title={`${gate.name} gate (drag or click to place)`}
     >
-      {gate.symbol}
+      <span className="pointer-events-none">{gate.symbol}</span>
     </div>
   )
 }
 
 export default function GatePalette() {
+  const { paletteSelectedGate, setPaletteSelectedGate } = useCircuitStore()
+  // Keep the most common quantum gate categories open by default for immediate drag-and-drop
+  const DEFAULT_OPEN_CATS = ['Hadamard', 'Quantum', 'Classical', 'Phase']
   const [collapsedCats, setCollapsedCats] = useState(() => {
     const initial = {}
     GATE_CATEGORIES.forEach((c) => {
-      initial[c.category] = true
+      initial[c.category] = !DEFAULT_OPEN_CATS.includes(c.category)
     })
     return initial
   })
@@ -174,6 +242,25 @@ export default function GatePalette() {
             className="w-full bg-[#1e1b2e] border border-white/10 text-xs text-white px-3 py-1.5 rounded-md outline-none font-mono focus:border-indigo-500/50"
             autoFocus
           />
+        </div>
+      )}
+
+      {/* Active Selected Gate Hint (Click-to-Place Mode) */}
+      {paletteSelectedGate && (
+        <div className="mb-3 px-2.5 py-2 rounded-md bg-cyan-950/80 border border-cyan-500/40 text-[11px] text-cyan-200 flex items-center justify-between shadow-sm animate-fadeIn">
+          <div className="flex items-center gap-1.5 truncate">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shrink-0" />
+            <span className="truncate">
+              Selected <strong>{paletteSelectedGate.name}</strong> • Click any cell
+            </span>
+          </div>
+          <button
+            onClick={() => setPaletteSelectedGate(null)}
+            className="text-cyan-400 hover:text-white ml-2 text-xs font-bold shrink-0 cursor-pointer"
+            title="Cancel selection"
+          >
+            ✕
+          </button>
         </div>
       )}
 

@@ -75,7 +75,7 @@ export const GRID = {
 // API Configuration (kept for backwards compatibility with older imports)
 export const API_CONFIG = {
   BASE_URL: (() => {
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+    const baseUrl = import.meta?.env?.VITE_API_URL || 'http://localhost:5000/api'
     if (baseUrl.startsWith('http://localhost') || baseUrl.startsWith('http://127.0.0.1')) {
       return baseUrl
     }

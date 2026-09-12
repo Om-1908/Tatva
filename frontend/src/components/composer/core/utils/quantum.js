@@ -100,7 +100,7 @@ export function simulateLocalCircuit(numQubits, gates, shots = 1024) {
 
   for (const g of sortedGates) {
     const type = (g.type || '').toUpperCase()
-    const q = g.target ?? g.qubit ?? 0
+    const q = g.targetQubit !== undefined ? g.targetQubit : (g.target !== undefined ? g.target : (g.qubit ?? 0))
     if (q >= n) continue
 
     const nextState = state.map((v) => ({ ...v }))
@@ -250,25 +250,55 @@ export function simulateLocalCircuit(numQubits, gates, shots = 1024) {
         }
       }
     } else if (type === 'CNOT' || type === 'CX') {
-      const ctrl = g.control ?? g.controlQubit ?? 0
-      for (let i = 0; i < numStates; i++) {
-        if (i & (1 << ctrl)) {
-          if ((i & (1 << q)) === 0) {
-            const pair = i | (1 << q)
-            nextState[i] = { ...state[pair] }
-            nextState[pair] = { ...state[i] }
+      const ctrl = g.controlQubit !== undefined ? g.controlQubit : (g.control !== undefined ? g.control : (q > 0 ? q - 1 : 1))
+      const target = q
+      if (ctrl < n && target < n && ctrl !== target) {
+        for (let i = 0; i < numStates; i++) {
+          if (i & (1 << ctrl)) {
+            if ((i & (1 << target)) === 0) {
+              const pair = i | (1 << target)
+              nextState[i] = { ...state[pair] }
+              nextState[pair] = { ...state[i] }
+            }
+          }
+        }
+      }
+    } else if (type === 'CZ') {
+      const ctrl = g.controlQubit !== undefined ? g.controlQubit : (g.control !== undefined ? g.control : (q > 0 ? q - 1 : 1))
+      const target = q
+      if (ctrl < n && target < n && ctrl !== target) {
+        for (let i = 0; i < numStates; i++) {
+          if ((i & (1 << ctrl)) && (i & (1 << target))) {
+            nextState[i] = { real: -state[i].real, imag: -state[i].imag }
+          }
+        }
+      }
+    } else if (type === 'CCNOT' || type === 'TOFFOLI') {
+      const c1 = g.controlQubit ?? g.control ?? 0
+      const c2 = g.controlQubit2 ?? g.control2 ?? 1
+      const target = q
+      if (c1 < n && c2 < n && target < n && c1 !== target && c2 !== target && c1 !== c2) {
+        for (let i = 0; i < numStates; i++) {
+          if ((i & (1 << c1)) && (i & (1 << c2))) {
+            if ((i & (1 << target)) === 0) {
+              const pair = i | (1 << target)
+              nextState[i] = { ...state[pair] }
+              nextState[pair] = { ...state[i] }
+            }
           }
         }
       }
     } else if (type === 'SWAP') {
-      const swapWith = g.swap_with ?? g.swapQubit ?? (q + 1) % n
-      for (let i = 0; i < numStates; i++) {
-        const bit1 = (i >> q) & 1
-        const bit2 = (i >> swapWith) & 1
-        if (bit1 !== bit2 && bit1 === 0) {
-          const swappedIdx = (i & ~(1 << q) & ~(1 << swapWith)) | (1 << swapWith)
-          nextState[i] = { ...state[swappedIdx] }
-          nextState[swappedIdx] = { ...state[i] }
+      const swapWith = g.swapQubit !== undefined ? g.swapQubit : (g.swap_with !== undefined ? g.swap_with : (q + 1) % n)
+      if (q < n && swapWith < n && q !== swapWith) {
+        for (let i = 0; i < numStates; i++) {
+          const bit1 = (i >> q) & 1
+          const bit2 = (i >> swapWith) & 1
+          if (bit1 !== bit2 && bit1 === 0) {
+            const swappedIdx = (i & ~(1 << q) & ~(1 << swapWith)) | (1 << swapWith)
+            nextState[i] = { ...state[swappedIdx] }
+            nextState[swappedIdx] = { ...state[i] }
+          }
         }
       }
     }

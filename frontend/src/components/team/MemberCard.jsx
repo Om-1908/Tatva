@@ -80,8 +80,10 @@ const MemberCard = ({ name, photo, initials, linkedin, designation, color = 'ind
                 src={photo}
                 alt={name}
                 referrerPolicy="no-referrer"
+                loading="eager"
+                decoding="async"
                 onError={() => setImgError(true)}
-                className="w-full h-full rounded-full object-cover group-hover:scale-110 transition-transform duration-300"
+                className="w-full h-full rounded-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
               />
             ) : (
               <div className={`w-full h-full rounded-full bg-gradient-to-br ${colors.gradient} flex items-center justify-center text-2xl sm:text-4xl font-extrabold text-white`}>

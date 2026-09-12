@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import { DEFAULT_SHOTS, isBlockType, blockExactTargets } from '../config/constants'
-import { API_BASE_URL } from '../../../../config'
+import { DEFAULT_SHOTS, isBlockType, blockExactTargets } from '../config/constants.js'
+import { API_BASE_URL } from '../../../../config.js'
 
 // Initialize empty circuit
 const createEmptyCircuit = (qubits, steps) => {
@@ -387,6 +387,12 @@ export const useCircuitStore = create((set, get) => ({
   targetStateLabel: '|0⟩',
   selectedState: '|0⟩',
   setSelectedState: (stateLabel) => set({ targetStateLabel: stateLabel, selectedState: stateLabel }),
+  paletteSelectedGate: null,
+  setPaletteSelectedGate: (gate) =>
+    set((state) => ({
+      paletteSelectedGate:
+        state.paletteSelectedGate?.type === gate?.type ? null : gate,
+    })),
   targetStatevector: [{ real: 1, imag: 0 }, { real: 0, imag: 0 }],
   setTargetState: (label, vector, numQubits) => {
     const nQ = Number(numQubits) || 4
@@ -495,19 +501,28 @@ export const useCircuitStore = create((set, get) => ({
         return state
       }
 
-      const newCircuit = state.circuit.map((row) => [...row])
+      // Safe clone and dimension assurance
+      const safeQubits = Math.max(state.qubits, qubit + 1)
+      const safeSteps = Math.max(state.steps, step + 1)
+      const newCircuit = Array.from({ length: safeQubits }, (_, q) => {
+        const row = state.circuit && state.circuit[q] ? [...state.circuit[q]] : []
+        while (row.length < safeSteps) {
+          row.push(null)
+        }
+        return row
+      })
 
       // Clear column step for any multi-qubit gate to prevent ghost/overlapping controls
       const clearColumn = (s) => {
-        for (let q = 0; q < state.qubits; q++) {
-          newCircuit[q][s] = null
+        for (let q = 0; q < safeQubits; q++) {
+          if (newCircuit[q]) newCircuit[q][s] = null
         }
       }
 
       if (typeUpper === 'CNOT' || typeUpper === 'CX') {
         const ctrl = Number.isInteger(gate.controlQubit) ? gate.controlQubit : (qubit > 0 ? qubit - 1 : 1)
         const target = qubit
-        if (ctrl === target || ctrl < 0 || ctrl >= state.qubits) return state
+        if (ctrl === target || ctrl < 0 || ctrl >= safeQubits) return state
 
         clearColumn(step)
 
@@ -527,7 +542,7 @@ export const useCircuitStore = create((set, get) => ({
           c1 = 0
           c2 = 2
         } else {
-          const candidates = Array.from({ length: state.qubits }, (_, i) => i).filter((i) => i !== target)
+          const candidates = Array.from({ length: safeQubits }, (_, i) => i).filter((i) => i !== target)
           c1 = candidates[0]
           c2 = candidates[1]
         }
@@ -535,7 +550,7 @@ export const useCircuitStore = create((set, get) => ({
         if (Number.isInteger(gate.controlQubit) && gate.controlQubit !== target) c1 = gate.controlQubit
         if (Number.isInteger(gate.controlQubit2) && gate.controlQubit2 !== target && gate.controlQubit2 !== c1) c2 = gate.controlQubit2
 
-        if (c1 < 0 || c1 >= state.qubits || c2 < 0 || c2 >= state.qubits || c1 === target || c2 === target || c1 === c2) {
+        if (c1 < 0 || c1 >= safeQubits || c2 < 0 || c2 >= safeQubits || c1 === target || c2 === target || c1 === c2) {
           return state
         }
 
@@ -547,7 +562,7 @@ export const useCircuitStore = create((set, get) => ({
 
       } else if (typeUpper === 'SWAP') {
         const swapQ = Number.isInteger(gate.swapQubit) ? gate.swapQubit : (qubit > 0 ? qubit - 1 : 1)
-        if (swapQ < 0 || swapQ >= state.qubits || swapQ === qubit) return state
+        if (swapQ < 0 || swapQ >= safeQubits || swapQ === qubit) return state
 
         clearColumn(step)
 
@@ -557,7 +572,7 @@ export const useCircuitStore = create((set, get) => ({
       } else if (typeUpper === 'CZ') {
         const ctrl = Number.isInteger(gate.controlQubit) ? gate.controlQubit : (qubit > 0 ? qubit - 1 : 1)
         const target = qubit
-        if (ctrl === target || ctrl < 0 || ctrl >= state.qubits) return state
+        if (ctrl === target || ctrl < 0 || ctrl >= safeQubits) return state
 
         clearColumn(step)
 
@@ -565,13 +580,18 @@ export const useCircuitStore = create((set, get) => ({
         newCircuit[target][step] = { type: 'CZ', controlQubit: ctrl, targetQubit: target, role: 'CZ' }
 
       } else {
-        newCircuit[qubit][step] = { ...gate }
+        const placedGate = { ...gate }
+        // Default rotation angles for rotation gates
+        if (['RX', 'RY', 'RZ', 'P'].includes(typeUpper) && placedGate.theta === undefined) {
+          placedGate.theta = Math.PI / 2
+        }
+        newCircuit[qubit][step] = placedGate
       }
 
       // Rebuild flat gates list
       const flatGates = []
-      for (let q = 0; q < state.qubits; q++) {
-        for (let s = 0; s < state.steps; s++) {
+      for (let q = 0; q < safeQubits; q++) {
+        for (let s = 0; s < safeSteps; s++) {
           const g = newCircuit[q][s]
           if (g) {
             flatGates.push({ id: `${q}-${s}-${Date.now()}`, qubit: q, step: s, ...g })
@@ -931,6 +951,9 @@ export const useCircuitStore = create((set, get) => ({
       }
     })
   },
+  updateGateTheta: (qubit, step, theta) => {
+    get().setGateTheta(qubit, step, theta)
+  },
 
   setShots: (shots) => set({ shots }),
   setSimulationResult: (result) => set({ simulationResult: result, isSimulating: false }),
@@ -946,6 +969,156 @@ export const useCircuitStore = create((set, get) => ({
         simulationResult: null,
         history: [{ circuit: newCircuit, gates: [] }],
         historyIndex: 0,
+      }
+    })
+  },
+
+  applyParsedGates: (parsedGates = []) => {
+    set((state) => {
+      if (!Array.isArray(parsedGates) || parsedGates.length === 0) {
+        const newCircuit = createEmptyCircuit(state.qubits, state.steps)
+        return {
+          circuit: newCircuit,
+          gates: [],
+          simulationResult: null,
+          history: [
+            ...state.history.slice(0, state.historyIndex + 1),
+            { circuit: newCircuit, gates: [] },
+          ],
+          historyIndex: state.historyIndex + 1,
+        }
+      }
+
+      const currentStepMap = Array(state.qubits).fill(0)
+      const scheduledGates = []
+
+      parsedGates.forEach((g) => {
+        const type = (g.type || '').toUpperCase()
+        let step = g.step
+
+        if (step === undefined || step === null) {
+          if (type === 'CNOT' || type === 'CX' || type === 'CZ') {
+            const ctrl = g.controlQubit ?? g.control ?? 0
+            const tgt = g.targetQubit ?? g.target ?? (ctrl === 0 ? 1 : 0)
+            const minQ = Math.max(0, Math.min(ctrl, tgt))
+            const maxQ = Math.min(state.qubits - 1, Math.max(ctrl, tgt))
+            let maxS = 0
+            for (let q = minQ; q <= maxQ; q++) maxS = Math.max(maxS, currentStepMap[q])
+            step = maxS
+            for (let q = minQ; q <= maxQ; q++) currentStepMap[q] = step + 1
+          } else if (type === 'SWAP') {
+            const q1 = g.qubit ?? 0
+            const q2 = g.swapQubit ?? (q1 === 0 ? 1 : 0)
+            const minQ = Math.max(0, Math.min(q1, q2))
+            const maxQ = Math.min(state.qubits - 1, Math.max(q1, q2))
+            let maxS = 0
+            for (let q = minQ; q <= maxQ; q++) maxS = Math.max(maxS, currentStepMap[q])
+            step = maxS
+            for (let q = minQ; q <= maxQ; q++) currentStepMap[q] = step + 1
+          } else if (type === 'CCNOT' || type === 'TOFFOLI') {
+            const c1 = g.controlQubit ?? 0
+            const c2 = g.controlQubit2 ?? 1
+            const tgt = g.targetQubit ?? 2
+            const allQ = [c1, c2, tgt].filter((q) => q >= 0 && q < state.qubits)
+            const minQ = Math.min(...allQ)
+            const maxQ = Math.max(...allQ)
+            let maxS = 0
+            for (let q = minQ; q <= maxQ; q++) maxS = Math.max(maxS, currentStepMap[q])
+            step = maxS
+            for (let q = minQ; q <= maxQ; q++) currentStepMap[q] = step + 1
+          } else {
+            const q = Math.max(0, Math.min(state.qubits - 1, g.qubit ?? g.target ?? 0))
+            step = currentStepMap[q]
+            currentStepMap[q] = step + 1
+          }
+        } else {
+          // If step was explicitly provided
+          const affected = [g.qubit, g.controlQubit, g.targetQubit, g.swapQubit, g.controlQubit2].filter(
+            (q) => Number.isInteger(q) && q >= 0 && q < state.qubits
+          )
+          affected.forEach((q) => {
+            currentStepMap[q] = Math.max(currentStepMap[q], step + 1)
+          })
+        }
+
+        scheduledGates.push({ ...g, step })
+      })
+
+      const maxStepUsed = Math.max(0, ...scheduledGates.map((g) => g.step ?? 0))
+      const totalSteps = Math.max(14, state.steps, maxStepUsed + 2)
+      const newCircuit = createEmptyCircuit(state.qubits, totalSteps)
+
+      scheduledGates.forEach((g) => {
+        const type = (g.type || '').toUpperCase()
+        const step = g.step ?? 0
+        if (step >= totalSteps) return
+
+        if (type === 'CNOT' || type === 'CX') {
+          const ctrl = g.controlQubit ?? g.control ?? 0
+          const tgt = g.targetQubit ?? g.target ?? 1
+          if (ctrl < state.qubits && tgt < state.qubits && ctrl !== tgt) {
+            newCircuit[ctrl][step] = { type: 'CNOT', controlQubit: ctrl, targetQubit: tgt, role: 'CONTROL' }
+            newCircuit[tgt][step] = { type: 'CNOT', controlQubit: ctrl, targetQubit: tgt, role: 'TARGET' }
+          }
+        } else if (type === 'CZ') {
+          const ctrl = g.controlQubit ?? g.control ?? 0
+          const tgt = g.targetQubit ?? g.target ?? 1
+          if (ctrl < state.qubits && tgt < state.qubits && ctrl !== tgt) {
+            newCircuit[ctrl][step] = { type: 'CZ', controlQubit: ctrl, targetQubit: tgt, role: 'CZ' }
+            newCircuit[tgt][step] = { type: 'CZ', controlQubit: ctrl, targetQubit: tgt, role: 'CZ' }
+          }
+        } else if (type === 'SWAP') {
+          const q1 = g.qubit ?? 0
+          const q2 = g.swapQubit ?? 1
+          if (q1 < state.qubits && q2 < state.qubits && q1 !== q2) {
+            newCircuit[q1][step] = { type: 'SWAP', qubit: q1, swapQubit: q2, role: 'SWAP' }
+            newCircuit[q2][step] = { type: 'SWAP', qubit: q2, swapQubit: q1, role: 'SWAP' }
+          }
+        } else if (type === 'CCNOT' || type === 'TOFFOLI') {
+          const c1 = g.controlQubit ?? 0
+          const c2 = g.controlQubit2 ?? 1
+          const tgt = g.targetQubit ?? 2
+          if (c1 < state.qubits && c2 < state.qubits && tgt < state.qubits) {
+            newCircuit[c1][step] = { type: 'CCNOT', controlQubit: c1, controlQubit2: c2, targetQubit: tgt, role: 'CONTROL' }
+            newCircuit[c2][step] = { type: 'CCNOT', controlQubit: c1, controlQubit2: c2, targetQubit: tgt, role: 'CONTROL' }
+            newCircuit[tgt][step] = { type: 'CCNOT', controlQubit: c1, controlQubit2: c2, targetQubit: tgt, role: 'TARGET' }
+          }
+        } else if (type === 'MEASURE') {
+          const q = g.qubit ?? 0
+          if (q < state.qubits) {
+            newCircuit[q][step] = { type: 'MEASURE', qubit: q }
+          }
+        } else {
+          const q = g.qubit ?? g.target ?? 0
+          if (q < state.qubits) {
+            newCircuit[q][step] = {
+              type: g.type,
+              ...(g.theta !== undefined && { theta: Number(g.theta) }),
+            }
+          }
+        }
+      })
+
+      const flatGates = []
+      for (let q = 0; q < state.qubits; q++) {
+        for (let s = 0; s < totalSteps; s++) {
+          const cellG = newCircuit[q][s]
+          if (cellG) {
+            flatGates.push({ id: `applied-${q}-${s}-${Date.now()}`, qubit: q, step: s, ...cellG })
+          }
+        }
+      }
+
+      return {
+        circuit: newCircuit,
+        gates: flatGates,
+        steps: totalSteps,
+        simulationResult: null,
+        history: [
+          ...state.history.slice(0, state.historyIndex + 1),
+          { circuit: newCircuit, gates: flatGates },
+        ],
+        historyIndex: state.historyIndex + 1,
       }
     })
   },

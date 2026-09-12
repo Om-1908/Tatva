@@ -1,5 +1,6 @@
 import { STATE_VECTORS } from './quantumStates.js'
 import { simulateLocalCircuit } from '../components/composer/core/utils/quantum.js'
+import { synthesizeOptimalCircuit } from '../components/composer/core/store/useCircuitStore.js'
 
 /**
  * Resolves a normalized target statevector from label, custom vector, or preset.
@@ -15,7 +16,10 @@ export function resolveTargetVector(targetLabel, customVector, numQubits = 1) {
       imag: Number(amp.imag ?? amp.im ?? 0),
     }))
   } else {
-    const rawPreset = STATE_VECTORS[targetLabel]
+    const cleanLabel = String(targetLabel || '').trim()
+    const normLabel = cleanLabel.replace(/[\u2212]/g, '-')
+    const rawPreset = STATE_VECTORS[cleanLabel] || STATE_VECTORS[normLabel]
+
     if (Array.isArray(rawPreset)) {
       vec = Array.from({ length: total }, () => ({ real: 0, imag: 0 }))
       rawPreset.forEach(([basisStr, ampStr]) => {
@@ -35,6 +39,22 @@ export function resolveTargetVector(targetLabel, customVector, numQubits = 1) {
           }
         }
       })
+    } else {
+      // Robust canonical fallback: compute theoretical target statevector via canonical circuit
+      try {
+        const canonicalGates = synthesizeOptimalCircuit(normLabel, numQubits)
+        if (Array.isArray(canonicalGates) && canonicalGates.length > 0) {
+          const simRes = simulateLocalCircuit(numQubits, canonicalGates, 1024)
+          if (simRes?.statevector && simRes.statevector.length === total) {
+            vec = simRes.statevector.map((a) => ({
+              real: Number(a.real ?? a.re ?? 0),
+              imag: Number(a.imag ?? a.im ?? 0),
+            }))
+          }
+        }
+      } catch (err) {
+        console.warn('Fallback canonical statevector generation error:', err)
+      }
     }
   }
 
@@ -117,21 +137,34 @@ export function computeCanvasStatevector(circuit, qubits = 1) {
     if (!Array.isArray(row)) return
     row.forEach((g, stepIdx) => {
       if (!g || g.type === 'CNOT_TARGET' || g.role === 'TARGET') return
+      const tgt =
+        (g.type === 'CNOT' || g.type === 'CX' || g.type === 'CZ' || g.type === 'CCNOT' || g.type === 'TOFFOLI') &&
+        g.targetQubit !== undefined
+          ? g.targetQubit
+          : g.target !== undefined
+          ? g.target
+          : qIdx
+      const ctrl =
+        g.controlQubit !== undefined
+          ? g.controlQubit
+          : g.control !== undefined
+          ? g.control
+          : qIdx > 0
+          ? qIdx - 1
+          : 1
+
       gates.push({
         type: g.type,
-        target: qIdx,
+        target: tgt,
+        targetQubit: tgt,
         qubit: qIdx,
         step: stepIdx,
-        control:
-          g.controlQubit !== undefined
-            ? g.controlQubit
-            : g.control !== undefined
-            ? g.control
-            : qIdx > 0
-            ? qIdx - 1
-            : 1,
+        control: ctrl,
+        controlQubit: ctrl,
         control2: g.controlQubit2,
-        swap_with: g.swapQubit,
+        controlQubit2: g.controlQubit2,
+        swap_with: g.swapQubit ?? g.swap_with,
+        swapQubit: g.swapQubit ?? g.swap_with,
         theta: g.theta,
       })
     })

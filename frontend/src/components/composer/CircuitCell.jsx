@@ -1,5 +1,4 @@
-import React from 'react'
-import { useDrop, useDrag } from 'react-dnd'
+import React, { useState } from 'react'
 import { useCircuitStore } from './core/store/useCircuitStore'
 
 const GATE_COLOR_MAP = {
@@ -33,9 +32,10 @@ function formatAngleDisplay(theta) {
  * Universal Gate Resolver for any cell (qubit, step).
  * Works for presets, JSON imports, RL agent synthesis, and manual drag-and-drop.
  */
-export function getCellGateInfo(circuit, qubit, step, numQubits) {
+export function getCellGateInfo(circuit, qubit, step, numQubits = 4) {
   if (!circuit || !Array.isArray(circuit)) return null
-  for (let q = 0; q < numQubits; q++) {
+  const safeQubits = numQubits ?? circuit?.length ?? 4
+  for (let q = 0; q < safeQubits; q++) {
     const g = circuit[q]?.[step]
     if (!g) continue
 
@@ -173,7 +173,7 @@ function ReadOnlyCircuitCell({ qubit, step, numQubits, customCircuit }) {
 }
 
 /**
- * Interactive Cell: Connected to react-dnd and useCircuitStore
+ * Interactive Cell: Connected to useCircuitStore with native HTML5 Drag and Drop
  */
 function InteractiveCircuitCell({
   qubit,
@@ -182,44 +182,90 @@ function InteractiveCircuitCell({
   onSelectGate,
   onRemoveGate,
   numQubits,
+  customCircuit,
 }) {
-  const { circuit, addGate, moveGate } = useCircuitStore()
+  const { circuit: storeCircuit, addGate, moveGate, paletteSelectedGate, setPaletteSelectedGate } =
+    useCircuitStore()
+  const circuit = customCircuit ?? storeCircuit
   const gate = getCellGateInfo(circuit, qubit, step, numQubits)
   const anchorQ = gate?.anchorQubit ?? qubit
 
-  const [{ isDraggingPlaced }, dragPlacedRef] = useDrag(
-    () => ({
-      type: 'PLACED_GATE',
-      item: { fromQubit: anchorQ, fromStep: step, gate, type: gate?.type },
-      canDrag: Boolean(gate),
-      collect: (m) => ({
-        isDraggingPlaced: Boolean(m.isDragging()),
-      }),
-    }),
-    [anchorQ, step, gate]
-  )
+  const [isOver, setIsOver] = useState(false)
+  const [isDraggingPlaced, setIsDraggingPlaced] = useState(false)
 
-  const [{ isOver, canDrop }, dropRef] = useDrop(
-    () => ({
-      accept: ['GATE', 'PLACED_GATE'],
-      drop: (item) => {
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+  }
+
+  const handleDragEnter = (e) => {
+    e.preventDefault()
+    setIsOver(true)
+  }
+
+  const handleDragLeave = (e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setIsOver(false)
+    }
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setIsOver(false)
+    try {
+      const raw = e.dataTransfer.getData('application/json')
+      if (raw) {
+        const item = JSON.parse(raw)
         if (item.fromQubit !== undefined && item.fromStep !== undefined) {
           if (item.fromQubit === qubit && item.fromStep === step) return
           moveGate(item.fromQubit, item.fromStep, qubit, step)
-        } else {
-          addGate(qubit, step, { type: item.type })
+        } else if (item.type) {
+          addGate(qubit, step, { type: item.type, theta: item.theta })
         }
-      },
-      collect: (monitor) => ({
-        isOver: !!monitor.isOver(),
-        canDrop: !!monitor.canDrop(),
-      }),
-    }),
-    [qubit, step, moveGate, addGate]
-  )
+        return
+      }
+
+      const textType = e.dataTransfer.getData('text/plain')
+      if (textType) {
+        addGate(qubit, step, { type: textType })
+      }
+    } catch (err) {
+      console.error('Error during gate drop:', err)
+    }
+  }
+
+  const handlePlacedDragStart = (e) => {
+    e.stopPropagation()
+    setIsDraggingPlaced(true)
+    const payload = JSON.stringify({
+      fromQubit: anchorQ,
+      fromStep: step,
+      type: gate?.type,
+      theta: gate?.theta,
+    })
+    e.dataTransfer.setData('application/json', payload)
+    e.dataTransfer.setData('text/plain', gate?.type || '')
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handlePlacedDragEnd = () => {
+    setIsDraggingPlaced(false)
+  }
 
   const handleClick = (e) => {
     e.stopPropagation()
+    // If a gate is selected in the palette (click-to-place mode):
+    if (paletteSelectedGate) {
+      addGate(qubit, step, {
+        type: paletteSelectedGate.type,
+        theta: paletteSelectedGate.theta,
+      })
+      if (setPaletteSelectedGate) {
+        setPaletteSelectedGate(null)
+      }
+      return
+    }
+
     if (gate && onSelectGate) {
       onSelectGate({ qubit: anchorQ, step, gate })
     }
@@ -235,12 +281,26 @@ function InteractiveCircuitCell({
 
   return (
     <div
-      ref={dropRef}
       onClick={handleClick}
       onContextMenu={handleContextMenu}
-      className={`w-[48px] h-[48px] relative flex items-center justify-center border-r border-[#393939]/60 select-none ${
-        isOver && canDrop ? 'bg-[#29b6f6]/20' : ''
-      } ${!gate && isOver && !canDrop ? 'bg-red-500/20' : ''}`}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={`w-[48px] h-[48px] relative z-10 flex items-center justify-center border-r border-[#393939]/60 select-none transition-all ${
+        paletteSelectedGate ? 'hover:bg-cyan-500/15 cursor-pointer' : ''
+      } ${
+        isOver
+          ? 'bg-cyan-500/30 ring-2 ring-inset ring-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.4)]'
+          : ''
+      }`}
+      title={
+        paletteSelectedGate
+          ? `Click to place ${paletteSelectedGate.name} on wire q[${qubit}]`
+          : gate
+          ? 'Click to inspect, drag to move, right-click to delete'
+          : 'Drag gate here or select from operations palette'
+      }
     >
       {/* Horizontal wire line */}
       <div className="absolute left-0 right-0 h-[1.5px] bg-[#525252] z-0 pointer-events-none" />
@@ -248,13 +308,17 @@ function InteractiveCircuitCell({
       {/* Render Gate Element */}
       {gate && (
         <div
-          ref={dragPlacedRef}
+          draggable={true}
+          onDragStart={handlePlacedDragStart}
+          onDragEnd={handlePlacedDragEnd}
           className={`z-20 relative flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-105 ${
             isDraggingPlaced ? 'opacity-20 scale-90' : ''
           }`}
           title="Click to select, drag to move, right-click to delete"
         >
-          <GateVisual gate={gate} isSelected={isSelected} />
+          <div className="pointer-events-none">
+            <GateVisual gate={gate} isSelected={isSelected} />
+          </div>
         </div>
       )}
     </div>

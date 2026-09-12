@@ -13,6 +13,16 @@ import logging
 import os
 import requests as http_requests
 
+# RL Model Inference (PPO + DQN) — loaded lazily so Flask still starts even if torch is absent
+try:
+    from rl_inference import synthesize_rl as _synthesize_rl
+    _RL_AVAILABLE = True
+except Exception as _rl_import_err:
+    _RL_AVAILABLE = False
+    _synthesize_rl = None
+    import logging as _rl_log
+    _rl_log.getLogger(__name__).warning(f"rl_inference import failed: {_rl_import_err}")
+
 # Setup
 try:
     from dotenv import load_dotenv
@@ -1826,6 +1836,115 @@ def auth_reset_password():
         return jsonify({"error": str(e)}), 500
 
 
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RL SYNTHESIS ENDPOINT  —  PPO + DQN dual-model comparison
+# ─────────────────────────────────────────────────────────────────────────────
+
+@app.route('/api/rl-synthesize', methods=['POST'])
+@app.route('/rl-synthesize', methods=['POST'])
+def rl_synthesize():
+    """
+    Run both PPO and DQN trained models simultaneously on a target statevector,
+    compare their fidelities, and return the winner's gate sequence plus both
+    models' comparison data.
+
+    Expected JSON body:
+    {
+        "qubits": 1,
+        "target_state": "|1\u27e9",
+        "statevector": [{"real": 0, "imag": 0}, {"real": 1, "imag": 0}]
+    }
+
+    Response:
+    {
+        "success": true,
+        "winner": "PPO",
+        "winner_fidelity": 0.9987,
+        "winner_gates": [...],
+        "winner_gate_count": 3,
+        "winner_depth": 3,
+        "winner_time": 1.2,
+        "logs": [...],
+        "ppo": {"fidelity": 0.9987, "gate_count": 3, "synthesis_time": 1.2, ...},
+        "dqn": {"fidelity": 0.9821, "gate_count": 4, "synthesis_time": 0.8, ...}
+    }
+    """
+    try:
+        data = request.get_json() or {}
+        n_qubits = int(data.get('qubits', 1))
+        target_label = str(data.get('target_state', '|0\u27e9'))
+        sv_raw = data.get('statevector', [])
+
+        if not sv_raw:
+            return jsonify({'error': 'statevector is required'}), 400
+
+        if n_qubits < 1 or n_qubits > 4:
+            return jsonify({'error': 'qubits must be between 1 and 4'}), 400
+
+        logger.info(f"[RL Synthesize] target={target_label}, qubits={n_qubits}, rl_available={_RL_AVAILABLE}")
+
+        # Check if target corresponds to a named preset (bypass RL pipeline)
+        from preset_circuits import resolve_preset_synthesis
+        preset_result = resolve_preset_synthesis(target_label, n_qubits)
+
+        if preset_result is not None:
+            logger.info(f"[RL Synthesize] Target '{target_label}' resolved instantly via canonical textbook circuit ({preset_result['winner_gate_count']} gates)")
+            result = preset_result
+        elif _RL_AVAILABLE and _synthesize_rl is not None:
+            result = _synthesize_rl(sv_raw, n_qubits)
+        else:
+            # Lightweight NumPy fallback when torch is not installed
+            from rl_inference import _fallback_synthesis
+            import numpy as _np
+            sv_complex = []
+            for item in sv_raw:
+                if isinstance(item, dict):
+                    sv_complex.append(complex(item.get('real', 0), item.get('imag', 0)))
+                else:
+                    sv_complex.append(complex(item))
+            target_sv = _np.array(sv_complex, dtype=_np.complex128)
+            norm = _np.linalg.norm(target_sv)
+            if norm > 0:
+                target_sv = target_sv / norm
+            result = _fallback_synthesis(target_sv, n_qubits)
+
+        if not result.get('success'):
+            return jsonify({'error': result.get('error', 'Synthesis failed')}), 500
+
+        # Save synthesized circuit to MongoDB if available
+        if mongo_db is not None:
+            try:
+                circuit_type = 'Exact Textbook Circuit' if result.get('is_preset') else f'AI Synthesized ({result["winner"]})'
+                circuit_doc = {
+                    'id': f'circ-rl-{int(time.time() * 1000)}',
+                    'name': f'RL Synthesis → {target_label}',
+                    'qubits': n_qubits,
+                    'type': circuit_type,
+                    'fidelity': round(result['winner_fidelity'] * 100, 2),
+                    'gatesCount': result['winner_gate_count'],
+                    'depth': result['winner_depth'],
+                    'gates': result['winner_gates'],
+                    'synthesisTime': result['winner_time'],
+                    'modelComparison': {
+                        'winner': result['winner'],
+                        'ppo': result.get('ppo', {}),
+                        'dqn': result.get('dqn', {}),
+                    },
+                    'createdAt': int(time.time() * 1000),
+                    'date': time.strftime('%b %d, %Y • %H:%M UTC'),
+                }
+                mongo_db.circuits.insert_one(circuit_doc)
+                result['circuit_id'] = circuit_doc['id']
+            except Exception as db_err:
+                logger.warning(f"[RL Synthesize] MongoDB save error: {db_err}")
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        logger.error(f"[RL Synthesize] Unexpected error: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
 @app.errorhandler(404)

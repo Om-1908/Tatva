@@ -30,3 +30,7 @@ backend/.env
 !.vscode/extensions.json
 .idea
 .DS_Store
+
+# Large datasets and separate RL models repo
+backend/rl_models/
+*.h5

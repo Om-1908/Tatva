@@ -61,7 +61,7 @@ export default function ResultsPanel() {
 
   return (
     <div
-      style={{ height: isCollapsed ? '36px' : `${panelHeight}px` }}
+      style={{ height: isCollapsed ? '50px' : `${panelHeight}px` }}
       className={`fixed bottom-0 left-[240px] right-[260px] bg-[#16191d] border-t border-[#262c33] text-white z-[900] shadow-2xl flex flex-col ${
         isResizing ? 'transition-none select-none' : 'transition-all duration-150'
       }`}
@@ -69,24 +69,24 @@ export default function ResultsPanel() {
       {/* Top Drag Resize Handle Bar (Drag UP/DOWN to adjust height) */}
       <div
         onMouseDown={handleMouseDownResize}
-        className="h-2.5 bg-[#1f242d] hover:bg-[#29b6f6] cursor-ns-resize flex items-center justify-center group transition-colors shrink-0"
+        className="h-2 bg-[#1f242d] hover:bg-[#29b6f6] cursor-ns-resize flex items-center justify-center group transition-colors shrink-0"
         title="Click and drag up/down to resize simulation results window"
       >
         <div className="w-12 h-1 rounded-full bg-white/30 group-hover:bg-white transition-colors" />
       </div>
 
       {/* Panel Top Header Bar */}
-      <div className="h-[36px] bg-[#1f242d] border-b border-[#262c33] px-4 flex items-center justify-between shrink-0 select-none text-sm">
+      <div className="h-[42px] bg-[#1f242d] border-b border-[#262c33] px-4 flex items-center justify-between shrink-0 select-none text-sm">
         <div className="flex items-center gap-2 font-mono text-[#a8a8a8]">
           <span className="text-white font-bold tracking-wider">SIMULATION RESULTS</span>
         </div>
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="text-[#a8a8a8] hover:text-white px-2.5 py-0.5 rounded hover:bg-[#262c33] transition-colors font-mono text-xs"
+          className="text-gray-300 hover:text-white px-3 py-1 rounded bg-[#262c33]/80 hover:bg-[#30363d] transition-colors font-mono text-xs flex items-center gap-1 border border-white/10 shadow-sm"
           title={isCollapsed ? 'Expand results' : 'Collapse results'}
         >
-          {isCollapsed ? '▲ Expand' : '▼ Collapse'}
+          <span>{isCollapsed ? '▲ Expand' : '▼ Collapse'}</span>
         </button>
       </div>
 
