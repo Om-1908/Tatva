@@ -84,14 +84,37 @@ def simulate_actions(actions: List[Tuple], n_qubits: int = 2) -> np.ndarray:
             sv = T.reshape(-1)
 
         elif gate_name == 'CZ':
-            # 4x4 CZ acts as diag(1, 1, 1, -1) on |00>, |01>, |10>, |11>
-            sv[3] = -sv[3]
+            if isinstance(qubit_or_pair, (tuple, list)):
+                q1, q2 = qubit_or_pair
+            else:
+                q1, q2 = 0, 1
+            q1_ax = n_qubits - 1 - q1
+            q2_ax = n_qubits - 1 - q2
+            shape = [2] * n_qubits
+            T = sv.reshape(shape)
+            sl = [slice(None)] * n_qubits
+            sl[q1_ax] = 1
+            sl[q2_ax] = 1
+            T[tuple(sl)] *= -1.0
+            sv = T.reshape(-1)
 
         elif gate_name == 'SWAP':
-            # SWAP interchanges |01> (index 1) and |10> (index 2)
-            v1 = sv[1].copy()
-            sv[1] = sv[2]
-            sv[2] = v1
+            if isinstance(qubit_or_pair, (tuple, list)):
+                q1, q2 = qubit_or_pair
+            else:
+                q1, q2 = 0, 1
+            q1_ax = n_qubits - 1 - q1
+            q2_ax = n_qubits - 1 - q2
+            shape = [2] * n_qubits
+            T = sv.reshape(shape)
+            sl01 = [slice(None)] * n_qubits
+            sl01[q1_ax] = 0; sl01[q2_ax] = 1
+            sl10 = [slice(None)] * n_qubits
+            sl10[q1_ax] = 1; sl10[q2_ax] = 0
+            v01 = T[tuple(sl01)].copy()
+            T[tuple(sl01)] = T[tuple(sl10)]
+            T[tuple(sl10)] = v01
+            sv = T.reshape(-1)
 
     return sv
 

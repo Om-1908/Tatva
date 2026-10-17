@@ -35,3 +35,12 @@ backend/.env
 *.h5
 backend/rl_models/tatva_dataset_fast/
 
+# Vite Cache & Build Artifacts
+.vite
+frontend/.vite
+*.timestamp-*.mjs
+
+# Local archives & scratch
+Tatva-main/
+audit/
+audit.zip

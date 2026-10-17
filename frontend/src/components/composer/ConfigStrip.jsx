@@ -175,6 +175,7 @@ const ConfigStrip = () => {
                 <option value={2} className="bg-[#120F17] text-white">2 Qubits</option>
                 <option value={3} className="bg-[#120F17] text-white">3 Qubits</option>
                 <option value={4} className="bg-[#120F17] text-white">4 Qubits</option>
+                <option value={5} className="bg-[#120F17] text-white">5 Qubits</option>
               </select>
             </div>
           </div>

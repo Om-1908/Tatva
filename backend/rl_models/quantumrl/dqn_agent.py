@@ -196,8 +196,10 @@ class DQNAgent:
         self.target_net = copy.deepcopy(self.q_net).to(self.device)
         self.target_net.eval()
 
-        self.optimizer = torch.optim.Adam(self.q_net.parameters(), lr=config.DQN_LR)
-        self.scaler = torch.cuda.amp.GradScaler(enabled=self.device.type == 'cuda')
+        if hasattr(torch, 'amp') and hasattr(torch.amp, 'GradScaler'):
+            self.scaler = torch.amp.GradScaler('cuda', enabled=self.device.type == 'cuda')
+        else:
+            self.scaler = torch.cuda.amp.GradScaler(enabled=self.device.type == 'cuda')
 
         alpha = getattr(config, 'PER_ALPHA', 0.6)
         beta_start = getattr(config, 'PER_BETA_START', 0.4)

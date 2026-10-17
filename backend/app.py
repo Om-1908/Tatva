@@ -920,7 +920,7 @@ def encode_data():
         shots = data.get('shots', 1024)
 
         if encoding == 'angle':
-            qubits, gates, meta = encoder(
+            qubits, gates, meta = _angle_encoding(
                 payload, axis=data.get('axis', 'RY'), scale=data.get('scale', 1.0)
             )
         else:
@@ -959,10 +959,10 @@ def _encode_statevector(encoding, point, axis='RY', scale=1.0):
     Reuses the same encoders /encode uses, then evaluates the prepared state
     directly (no sampling) so kernel entries are exact. Returns (qubits, sv).
     """
-    encoder = ENCODERS[encoding]
     if encoding == 'angle':
-        qubits, gates, _ = encoder(point, axis=axis, scale=scale)
+        qubits, gates, _ = _angle_encoding(point, axis=axis, scale=scale)
     else:
+        encoder = ENCODERS[encoding]
         qubits, gates, _ = encoder(point)
 
     qc = QuantumCircuitBuilder.build_circuit(qubits, gates)
@@ -1880,8 +1880,8 @@ def rl_synthesize():
         if not sv_raw:
             return jsonify({'error': 'statevector is required'}), 400
 
-        if n_qubits < 1 or n_qubits > 4:
-            return jsonify({'error': 'qubits must be between 1 and 4'}), 400
+        if n_qubits < 1 or n_qubits > 5:
+            return jsonify({'error': 'qubits must be between 1 and 5'}), 400
 
         logger.info(f"[RL Synthesize] target={target_label}, qubits={n_qubits}, rl_available={_RL_AVAILABLE}")
 

@@ -168,6 +168,34 @@ export function synthesizeOptimalCircuit(label, nQubits = 4) {
     addCNOT(0, 1)
     addGate('H', 2)
     addCNOT(2, 3)
+
+    // 5-Qubit Presets
+  } else if (normLabel === '|00000⟩') {
+    // 0 gates
+  } else if (normLabel === '|00001⟩') {
+    addGate('X', 0)
+  } else if (normLabel === '|00010⟩') {
+    addGate('X', 1)
+  } else if (normLabel === '|00100⟩') {
+    addGate('X', 2)
+  } else if (normLabel === '|11111⟩') {
+    addGate('X', 0)
+    addGate('X', 1)
+    addGate('X', 2)
+    addGate('X', 3)
+    addGate('X', 4)
+  } else if (normLabel === '|GHZ5⟩') {
+    addGate('H', 0)
+    addCNOT(0, 1)
+    addCNOT(1, 2)
+    addCNOT(2, 3)
+    addCNOT(3, 4)
+  } else if (normLabel === '|+++++⟩') {
+    addGate('H', 0)
+    addGate('H', 1)
+    addGate('H', 2)
+    addGate('H', 3)
+    addGate('H', 4)
   } else {
     // Generic binary string representation parsing (e.g. |0101>)
     const cleanBin = normLabel.replace(/[^01]/g, '')

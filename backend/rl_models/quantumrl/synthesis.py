@@ -62,8 +62,16 @@ def build_qiskit_circuit(actions: List[Tuple], n_qubits: int = 2) -> QuantumCirc
             else:
                 ctrl, tgt = 0, 1
             qc.cx(ctrl, tgt)
-        elif g == 'CZ': qc.cz(0, 1)
-        elif g == 'SWAP': qc.swap(0, 1)
+        elif g == 'CZ':
+            if isinstance(q, (tuple, list)):
+                qc.cz(q[0], q[1])
+            else:
+                qc.cz(0, 1)
+        elif g == 'SWAP':
+            if isinstance(q, (tuple, list)):
+                qc.swap(q[0], q[1])
+            else:
+                qc.swap(0, 1)
         else:
             raise ValueError(f"Unknown gate in reconstruction: {g}")
     return qc
@@ -107,9 +115,21 @@ def parse_displayed_circuit(circuit_str_lines: List[str], n_qubits: int = 2) -> 
             t = int(t_str.strip().replace('q', ''))
             qc.cx(c, t)
         elif gate_name == 'CZ':
-            qc.cz(0, 1)
+            if ',' in inside:
+                q1_str, q2_str = inside.split(',')
+                q1 = int(q1_str.strip().replace('q', ''))
+                q2 = int(q2_str.strip().replace('q', ''))
+                qc.cz(q1, q2)
+            else:
+                qc.cz(0, 1)
         elif gate_name == 'SWAP':
-            qc.swap(0, 1)
+            if ',' in inside:
+                q1_str, q2_str = inside.split(',')
+                q1 = int(q1_str.strip().replace('q', ''))
+                q2 = int(q2_str.strip().replace('q', ''))
+                qc.swap(q1, q2)
+            else:
+                qc.swap(0, 1)
         else:
             if ',' in inside:
                 q_part, angle_part = inside.split(',', 1)
@@ -287,21 +307,35 @@ def prune_and_reoptimize_structural_search(
 def candidate_rank_key(cand: Dict, target_fidelity: float = 0.999999) -> Tuple:
     """
     Strict Hierarchical Candidate Ranking Key:
-      1. Satisfies F >= target_fidelity (High precision first: is_hp = 1)
-      2. Lower total gate count
-      3. Lower circuit depth
-      4. Fewer entangling gates
-      5. Higher fidelity (tie-breaker)
+      1. Satisfies F >= target_fidelity (High precision candidates first)
+      2. If target fidelity is met:
+            - Minimize total gate count
+            - Minimize circuit depth
+            - Minimize entangling gate count
+            - Maximize fidelity (tie-breaker)
+      3. If target fidelity is NOT met:
+            - Maximize fidelity (highest precision candidate first)
+            - Minimize total gate count
+            - Minimize circuit depth
     """
     fid = cand['final_fidelity']
     is_hp = 1 if fid >= target_fidelity else 0
-    return (
-        -is_hp,                           # 1st: High precision candidate first
-        cand['final_gate_count'],         # 2nd: Primary Objective (min gates)
-        cand['circuit_depth'],            # 3rd: Secondary Objective (min depth)
-        cand['entangling_gate_count'],    # 4th: Tertiary Objective (min entangling)
-        -fid                              # 5th: Maximize fidelity
-    )
+    if is_hp:
+        return (
+            -1,
+            cand['final_gate_count'],
+            cand['circuit_depth'],
+            cand['entangling_gate_count'],
+            -fid
+        )
+    else:
+        return (
+            0,
+            -fid,
+            cand['final_gate_count'],
+            cand['circuit_depth'],
+            cand['entangling_gate_count']
+        )
 
 
 def synthesize_circuit(

@@ -10,6 +10,7 @@ export function Step01GutterPanel({ isActivated }) {
     { qubits: '2 qubits', dim: '4 states', formula: '2²' },
     { qubits: '3 qubits', dim: '8 states', formula: '2³' },
     { qubits: '4 qubits', dim: '16 states', formula: '2⁴' },
+    { qubits: '5 qubits', dim: '32 states', formula: '2⁵' },
   ]
 
   return (

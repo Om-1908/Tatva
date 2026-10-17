@@ -66,7 +66,7 @@ export function Step01TargetStatePanel({ isActivated }) {
         </div>
 
         <span className="font-mono text-[10px] text-[#22D3EE]/80">
-          Supports 1–4 qubits
+          Supports 1–5 qubits
         </span>
       </div>
 

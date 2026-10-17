@@ -188,6 +188,38 @@ CANONICAL_CIRCUITS: Dict[Tuple[int, str], List[Dict[str, Any]]] = {
         {'type': 'H', 'target': 2, 'step': 0},
         {'type': 'CNOT', 'control': 2, 'target': 3, 'step': 1},
     ],
+    # ── 5-Qubit Presets ──
+    (5, '|00000⟩'): [],
+    (5, '|00001⟩'): [
+        {'type': 'X', 'target': 0, 'step': 0},
+    ],
+    (5, '|00010⟩'): [
+        {'type': 'X', 'target': 1, 'step': 0},
+    ],
+    (5, '|00100⟩'): [
+        {'type': 'X', 'target': 2, 'step': 0},
+    ],
+    (5, '|11111⟩'): [
+        {'type': 'X', 'target': 0, 'step': 0},
+        {'type': 'X', 'target': 1, 'step': 0},
+        {'type': 'X', 'target': 2, 'step': 0},
+        {'type': 'X', 'target': 3, 'step': 0},
+        {'type': 'X', 'target': 4, 'step': 0},
+    ],
+    (5, '|GHZ5⟩'): [
+        {'type': 'H', 'target': 0, 'step': 0},
+        {'type': 'CNOT', 'control': 0, 'target': 1, 'step': 1},
+        {'type': 'CNOT', 'control': 0, 'target': 2, 'step': 2},
+        {'type': 'CNOT', 'control': 0, 'target': 3, 'step': 3},
+        {'type': 'CNOT', 'control': 0, 'target': 4, 'step': 4},
+    ],
+    (5, '|+++++⟩'): [
+        {'type': 'H', 'target': 0, 'step': 0},
+        {'type': 'H', 'target': 1, 'step': 0},
+        {'type': 'H', 'target': 2, 'step': 0},
+        {'type': 'H', 'target': 3, 'step': 0},
+        {'type': 'H', 'target': 4, 'step': 0},
+    ],
 }
 
 
@@ -279,8 +311,8 @@ def get_canonical_circuit(label: str, n_qubits: int) -> Optional[List[Dict[str, 
         'phi_minus': '|Φ-⟩',
         'psi_plus': '|Ψ+⟩',
         'psi_minus': '|Ψ-⟩',
-        'ghz': '|GHZ⟩' if n_qubits == 3 else ('|GHZ4⟩' if n_qubits == 4 else '|Φ+⟩'),
-        'w': '|W⟩' if n_qubits == 3 else ('|W4⟩' if n_qubits == 4 else '|Ψ+⟩'),
+        'ghz': '|GHZ⟩' if n_qubits == 3 else ('|GHZ4⟩' if n_qubits == 4 else ('|GHZ5⟩' if n_qubits == 5 else '|Φ+⟩')),
+        'w': '|W⟩' if n_qubits == 3 else ('|W4⟩' if n_qubits == 4 else ('|W5⟩' if n_qubits == 5 else '|Ψ+⟩')),
     }
     clean_lower = norm.lower().replace('|', '').replace('⟩', '').replace('>', '')
     if clean_lower in aliases:
