@@ -6,15 +6,28 @@
  * - Local backend in development
  */
 
+function resolveBackendBaseUrl() {
+  if (import.meta?.env?.VITE_TATVA_API_URL) {
+    return import.meta.env.VITE_TATVA_API_URL
+  }
+  if (typeof window !== 'undefined' && window.location) {
+    const host = window.location.hostname
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://localhost:5000'
+    }
+  }
+  return 'https://tatva-0yqc.onrender.com'
+}
+
 function normalizeApiBaseUrl(url) {
   if (!url) return 'http://localhost:5000'
   if (url.startsWith('http://localhost') || url.startsWith('http://127.0.0.1')) {
-    return url
+    return url.replace(/\/$/, '')
   }
-  return url.replace(/^http:\/\//i, 'https://')
+  return url.replace(/^http:\/\//i, 'https://').replace(/\/$/, '')
 }
 
-const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_TATVA_API_URL || 'http://localhost:5000')
+const API_BASE_URL = normalizeApiBaseUrl(resolveBackendBaseUrl())
 
 export function getAPIEndpoint(path) {
   let cleanPath = path.startsWith('/') ? path : `/${path}`

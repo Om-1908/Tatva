@@ -75,7 +75,15 @@ export const GRID = {
 // API Configuration (kept for backwards compatibility with older imports)
 export const API_CONFIG = {
   BASE_URL: (() => {
-    const baseUrl = import.meta?.env?.VITE_API_URL || 'http://localhost:5000/api'
+    let baseUrl = import.meta?.env?.VITE_API_URL
+    if (!baseUrl) {
+      if (typeof window !== 'undefined' && window.location) {
+        const host = window.location.hostname
+        baseUrl = (host === 'localhost' || host === '127.0.0.1') ? 'http://localhost:5000/api' : 'https://tatva-0yqc.onrender.com/api'
+      } else {
+        baseUrl = 'https://tatva-0yqc.onrender.com/api'
+      }
+    }
     if (baseUrl.startsWith('http://localhost') || baseUrl.startsWith('http://127.0.0.1')) {
       return baseUrl
     }

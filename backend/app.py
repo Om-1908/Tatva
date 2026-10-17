@@ -34,7 +34,15 @@ app = Flask(__name__)
 frontend_url = os.getenv("FRONTEND_URL", "*")
 CORS(app, resources={
     r"/*": {
-        "origins": [frontend_url, "http://localhost:5173", "http://localhost:5174", "http://127.0.0.1:5173", "http://127.0.0.1:5174", "*"]
+        "origins": [
+            frontend_url,
+            "https://tatva-quantum.vercel.app",
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:5174",
+            "*"
+        ]
     }
 })
 

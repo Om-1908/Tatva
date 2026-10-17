@@ -1,7 +1,20 @@
 import axios from 'axios'
 
+function resolveApiBaseUrl() {
+  if (import.meta?.env?.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL
+  }
+  if (typeof window !== 'undefined' && window.location) {
+    const host = window.location.hostname
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://localhost:8000'
+    }
+  }
+  return 'https://tatva-0yqc.onrender.com'
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+  baseURL: resolveApiBaseUrl(),
   timeout: 30000,
 })
 
